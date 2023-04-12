@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HCL.IdentityServer.API.Controllers
 {
     [ApiController]
-    [Route("api/v1/[controller]")]
+    [Route("api/[controller]")]
     public class IdentityServerController : ControllerBase
     {
         private readonly ILogger<IdentityServerController> _logger;
