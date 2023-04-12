@@ -26,22 +26,23 @@ namespace HCL.IdentityServer.API.BLL.Services
             _options = options.Value;
             _accountService = accountService;
         }
-        public async Task<BaseResponse<(string, Guid)>> Registration(AccountDTO DTO)
+        public async Task<BaseResponse<AuthDTO>> Registration(AccountDTO DTO)
         {
             try
             {
                 var accountOnRegistration = (await _accountService.GetAccount(x => x.Login == DTO.Login)).Data;
                 if (accountOnRegistration != null)
                 {
-                    return new StandartResponse<(string, Guid)>()
+                    return new StandartResponse<AuthDTO>()
                     {
-                        Message = "Account with that login alredy exist"
+                        Message = "Account with that login alredy exist",
+                        StatusCode = StatusCode.AccountExist
                     };
                 }
                 CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
                 newAccount = (await _accountService.CreateAccount(newAccount)).Data;
-                return new StandartResponse<(string, Guid)>()
+                return new StandartResponse<AuthDTO>()
                 {
                     Data = (await Authenticate(DTO)).Data,
                     StatusCode = StatusCode.AccountCreate
@@ -51,7 +52,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[Registration] : {ex.Message}");
-                return new StandartResponse<(string, Guid)>()
+                return new StandartResponse<AuthDTO>()
                 {
                     Message = ex.Message,
                     StatusCode = StatusCode.InternalServerError,
@@ -59,7 +60,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             }
         }
 
-        public async Task<BaseResponse<(string, Guid)>> Authenticate(AccountDTO DTO)
+        public async Task<BaseResponse<AuthDTO>> Authenticate(AccountDTO DTO)
         {
             try
             {
@@ -67,22 +68,22 @@ namespace HCL.IdentityServer.API.BLL.Services
                 if (account.Data == null ||
                     !VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
                 {
-                    return new StandartResponse<(string, Guid)>()
+                    return new StandartResponse<AuthDTO>()
                     {
                         Message = "account not found"
                     };
                 }
                 string token = GetToken(account.Data);
-                return new StandartResponse<(string, Guid)>()
+                return new StandartResponse<AuthDTO>()
                 {
-                    Data = (token, (Guid)account.Data.Id),
+                    Data = new AuthDTO(token, (Guid)account.Data.Id),
                     StatusCode = StatusCode.AccountAuthenticate
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[Authenticate] : {ex.Message}");
-                return new StandartResponse<(string, Guid)>()
+                return new StandartResponse<AuthDTO>()
                 {
                     Message = ex.Message,
                     StatusCode = StatusCode.InternalServerError,

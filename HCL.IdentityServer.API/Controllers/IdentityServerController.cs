@@ -2,6 +2,7 @@ using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.Domain.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 
 namespace HCL.IdentityServer.API.Controllers
 {
@@ -21,53 +22,47 @@ namespace HCL.IdentityServer.API.Controllers
         }
 
         [HttpPost("v1/Authenticate/")]
-        public async Task<IResult> Authenticate(AccountDTO accountDTO)
+        public async Task<IActionResult> Authenticate([FromQuery] AccountDTO accountDTO)
         {
             if (accountDTO == null)
             {
-                return Results.NotFound();
+                return BadRequest();
             }
             var resourse = await _registrationService.Authenticate(accountDTO);
-            if (resourse.Data.Item1 == null)
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountAuthenticate)
             {
-                return Results.NoContent();
+                return Ok(Results.Json(resourse.Data));
             }
-            else
-            {
-                return Results.Json(new { token = resourse.Data.Item1, id = resourse.Data.Item2 });
-            }
+            return Unauthorized();
         }
 
         [HttpPost("v1/Registration/")]
-        public async Task<IResult> Registration(AccountDTO accountDTO)
+        public async Task<IActionResult> Registration([FromQuery] AccountDTO accountDTO)
         {
             if (accountDTO == null)
             {
-                return Results.NotFound();
+                return BadRequest();
             }
             var resourse = await _registrationService.Registration(accountDTO);
-            if (resourse.Data.Item1 == null)
+            if (resourse.StatusCode==Domain.Enums.StatusCode.AccountCreate)
             {
-                return Results.NoContent();
+                return Created("",Results.Json(resourse.Data));
             }
-            else
-            {
-                return Results.Json(new { token = resourse.Data.Item1, id = resourse.Data.Item2 });
-            }
+            return StatusCode(500);
         }
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("v1/Delete/{id}")]
-        public async Task<IResult> Delete(Guid id)
+        [HttpDelete("v1/Account/")]
+        public async Task<IActionResult> Delete([FromQuery] Guid id)
         {
             var resourse = await _accountService.DeleteAccount(x => x.Id == id);
             if (resourse.Data)
             {
-                return Results.Ok(resourse.Data);
+                return Ok(resourse.Data);
             }
             else
             {
-                return Results.StatusCode(500);
+                return StatusCode(500);
             }
         }
     }

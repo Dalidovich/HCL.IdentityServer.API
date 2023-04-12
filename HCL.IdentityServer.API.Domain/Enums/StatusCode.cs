@@ -15,6 +15,7 @@ namespace HCL.IdentityServer.API.Domain.Enums
         AccountDelete = 3,
         AccountRead = 4,
         AccountAuthenticate = 5,
+        AccountExist = 6,
 
         OK = 200,
         OKNoContent = 204,
