@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace HCL.IdentityServer.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class IdentityServerController : ControllerBase
     {
         private readonly ILogger<IdentityServerController> _logger;
@@ -20,7 +20,7 @@ namespace HCL.IdentityServer.API.Controllers
             _accountService = accountService;
         }
 
-        [HttpPost("Authenticate/")]
+        [HttpPost("v1/Authenticate/")]
         public async Task<IResult> Authenticate(AccountDTO accountDTO)
         {
             if (accountDTO == null)
@@ -38,7 +38,7 @@ namespace HCL.IdentityServer.API.Controllers
             }
         }
 
-        [HttpPost("Registration/")]
+        [HttpPost("v1/Registration/")]
         public async Task<IResult> Registration(AccountDTO accountDTO)
         {
             if (accountDTO == null)
@@ -57,7 +57,7 @@ namespace HCL.IdentityServer.API.Controllers
         }
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("v1/Delete/{id}")]
         public async Task<IResult> Delete(Guid id)
         {
             var resourse = await _accountService.DeleteAccount(x => x.Id == id);

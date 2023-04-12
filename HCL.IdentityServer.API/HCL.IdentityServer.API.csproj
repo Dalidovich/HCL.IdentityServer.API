@@ -17,8 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\HCL\HCL.IdentityServer\HCL.IdentityServer.BLL\HCL.IdentityServer.BLL.csproj" />
-    <ProjectReference Include="..\..\HCL\HCL.IdentityServer\HCL.IdentityServer.DAL\HCL.IdentityServer.DAL.csproj" />
     <ProjectReference Include="..\HCL.IdentityServer.API.BLL\HCL.IdentityServer.API.BLL.csproj" />
   </ItemGroup>
 
