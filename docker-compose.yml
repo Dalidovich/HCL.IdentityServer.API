@@ -1,0 +1,37 @@
+version: '3.4'
+
+networks:
+  dev:
+    driver: bridge
+
+services:
+  hcl.identityserver.api:
+    image: ${DOCKER_REGISTRY-}hclidentityserverapi
+    depends_on: 
+      - app_db_hcl_identity
+    container_name: HCL.IdentityServer
+    build:
+      context: .
+      dockerfile: HCL.IdentityServer.API/Dockerfile
+    environment:
+      - ConnectionStrings__NpgConnectionString=User Id=postgres; Password=pg; Server=app_db_hcl_identity; Port=5432; Database=HCL_IdentityServer; IntegratedSecurity=true; Pooling=true;
+    networks:
+      - dev
+
+  app_db_hcl_identity: 
+    image: postgres:latest
+    container_name: app_db_hcl_identity
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=pg
+      - POSTGRES_DB=HCL_IdentityServer
+    ports:
+      - "5433:5432"
+    restart: always
+    volumes:
+      - app_data:/var/lib/postgresql/data
+    networks:
+      - dev
+            
+volumes:
+  app_data:
