@@ -58,7 +58,7 @@ namespace HCL.IdentityServer.API.Controllers
                 }
             }
 
-            return StatusCode(500);
+            return BadRequest();
         }
 
         [Authorize(Roles = "admin")]
@@ -72,7 +72,7 @@ namespace HCL.IdentityServer.API.Controllers
             }
             else
             {
-                return StatusCode(500);
+                return BadRequest();
             }
         }
     }
