@@ -12,7 +12,6 @@ namespace HCL.IdentityServer.API.Domain.DTO
         [Required(AllowEmptyStrings = true,ErrorMessage = "Need Login")]
         public string Login { get; set; }
 
-
         [Required(AllowEmptyStrings = true, ErrorMessage = "Need Password")]
         public string Password { get; set; }
     }

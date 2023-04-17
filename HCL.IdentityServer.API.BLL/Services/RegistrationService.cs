@@ -42,6 +42,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                 CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
                 var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
                 newAccount = (await _accountService.CreateAccount(newAccount)).Data;
+
                 return new StandartResponse<AuthDTO>()
                 {
                     Data = (await Authenticate(DTO)).Data,
@@ -52,6 +53,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[Registration] : {ex.Message}");
+
                 return new StandartResponse<AuthDTO>()
                 {
                     Message = ex.Message,
@@ -74,6 +76,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                     };
                 }
                 string token = GetToken(account.Data);
+
                 return new StandartResponse<AuthDTO>()
                 {
                     Data = new AuthDTO(token, (Guid)account.Data.Id),
@@ -83,6 +86,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[Authenticate] : {ex.Message}");
+
                 return new StandartResponse<AuthDTO>()
                 {
                     Message = ex.Message,

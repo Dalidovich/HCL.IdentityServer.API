@@ -24,6 +24,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             {
                 var createdAccount = await _accountRepository.AddAsync(account);
                 await _accountRepository.SaveAsync();
+
                 return new StandartResponse<Account>()
                 {
                     Data = createdAccount,
@@ -33,6 +34,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[CreateAccount] : {ex.Message}");
+
                 return new StandartResponse<Account>()
                 {
                     Message = ex.Message,
@@ -55,6 +57,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                 }
                 var accountIsDelete = _accountRepository.Delete(entity);
                 await _accountRepository.SaveAsync();
+
                 return new StandartResponse<bool>()
                 {
                     Data = accountIsDelete,
@@ -64,6 +67,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[DeleteAccount] : {ex.Message}");
+
                 return new StandartResponse<bool>()
                 {
                     Message = ex.Message,
@@ -84,6 +88,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                         Message = "entity not found"
                     };
                 }
+
                 return new StandartResponse<Account>()
                 {
                     Data = entity,
@@ -93,6 +98,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[GetAccount] : {ex.Message}");
+
                 return new StandartResponse<Account>()
                 {
                     Message = ex.Message,
@@ -113,6 +119,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                         Message = "entity not found"
                     };
                 }
+
                 return new StandartResponse<IEnumerable<Account>>()
                 {
                     Data = contents,
@@ -122,6 +129,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[GetAllAccounts] : {ex.Message}");
+
                 return new StandartResponse<IEnumerable<Account>>()
                 {
                     Message = ex.Message,
@@ -136,6 +144,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             {
                 var updatedAccount = _accountRepository.Update(account);
                 await _accountRepository.SaveAsync();
+
                 return new StandartResponse<Account>()
                 {
                     Data = updatedAccount,
@@ -145,6 +154,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"[UpdateAccount] : {ex.Message}");
+
                 return new StandartResponse<Account>()
                 {
                     Message = ex.Message,

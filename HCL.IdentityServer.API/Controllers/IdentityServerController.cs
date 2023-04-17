@@ -32,8 +32,9 @@ namespace HCL.IdentityServer.API.Controllers
             var resourse = await _registrationService.Authenticate(accountDTO);
             if (resourse.StatusCode == Domain.Enums.StatusCode.AccountAuthenticate)
             {
-                return Ok(Results.Json(resourse.Data));
+                return Ok(resourse.Data);
             }
+
             return Unauthorized();
         }
 
@@ -49,13 +50,14 @@ namespace HCL.IdentityServer.API.Controllers
                 var resourse = await _registrationService.Registration(accountDTO);
                 if (resourse.StatusCode == Domain.Enums.StatusCode.AccountCreate)
                 {
-                    return Created("", Results.Json(resourse.Data));
+                    return Created("", resourse.Data);
                 }
                 if (resourse.StatusCode == Domain.Enums.StatusCode.AccountExist)
                 {
-                    return Conflict(Results.Json("Account Exist"));
+                    return Conflict("Account Exist");
                 }
-            }            
+            }
+
             return StatusCode(500);
         }
 
