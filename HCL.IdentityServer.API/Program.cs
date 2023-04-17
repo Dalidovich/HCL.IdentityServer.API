@@ -31,7 +31,8 @@ namespace HCL.IdentityServer.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseMiddleware<CheckDBMiddleware>(); ;
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
+            app.UseMiddleware<CheckDBMiddleware>();
             app.UseHttpsRedirection();
 
             app.UseAuthorization();

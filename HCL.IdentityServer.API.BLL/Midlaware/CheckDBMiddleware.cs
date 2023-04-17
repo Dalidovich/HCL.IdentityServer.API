@@ -41,16 +41,7 @@ namespace HCL.IdentityServer.API.BLL.Midlaware
                 {
                     httpContext.RequestServices.GetService<AppDBContext>().UpdateDatabase();
                 }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"[db update middleware]ex.Message");
-
-                HttpResponse response = httpContext.Response;
-                response.ContentType = "application/json";
-                response.StatusCode = 500;
-
-                await response.WriteAsJsonAsync(new { Message = ex.Message });
+                throw ex;
             }
             await _next.Invoke(httpContext);
         }
