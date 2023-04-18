@@ -9,13 +9,11 @@ namespace HCL.IdentityServer.API.Controllers
     [Route("api/[controller]")]
     public class IdentityServerController : ControllerBase
     {
-        private readonly ILogger<IdentityServerController> _logger;
         private readonly IRegistrationService _registrationService;
         private readonly IAccountService _accountService;
 
-        public IdentityServerController(ILogger<IdentityServerController> logger, IRegistrationService registrationService, IAccountService accountService)
+        public IdentityServerController(IRegistrationService registrationService, IAccountService accountService)
         {
-            _logger = logger;
             _registrationService = registrationService;
             _accountService = accountService;
         }

@@ -12,12 +12,10 @@ namespace HCL.IdentityServer.API.BLL.Services
     public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
-        protected readonly ILogger<IAccountService> _logger;
 
-        public AccountService(IAccountRepository repository, ILogger<IAccountService> logger)
+        public AccountService(IAccountRepository repository)
         {
             _accountRepository = repository;
-            _logger = logger;
         }
 
         public async Task<BaseResponse<Account>> CreateAccount(Account account)

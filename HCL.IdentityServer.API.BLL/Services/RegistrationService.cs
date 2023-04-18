@@ -16,13 +16,11 @@ namespace HCL.IdentityServer.API.BLL.Services
 {
     public class RegistrationService : IRegistrationService
     {
-        protected readonly ILogger<RegistrationService> _logger;
         private readonly JWTSettings _options;
         private readonly IAccountService _accountService;
 
-        public RegistrationService(ILogger<RegistrationService> logger, IOptions<JWTSettings> options, IAccountService accountService)
+        public RegistrationService(IOptions<JWTSettings> options, IAccountService accountService)
         {
-            _logger = logger;
             _options = options.Value;
             _accountService = accountService;
         }
