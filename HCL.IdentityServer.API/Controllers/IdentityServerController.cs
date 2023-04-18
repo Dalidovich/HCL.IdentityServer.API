@@ -2,8 +2,6 @@ using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.Domain.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Http;
-using HCL.IdentityServer.API.DAL;
 
 namespace HCL.IdentityServer.API.Controllers
 {

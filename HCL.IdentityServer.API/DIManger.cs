@@ -1,4 +1,5 @@
 ﻿using HCL.IdentityServer.API.BLL.Interfaces;
+using HCL.IdentityServer.API.BLL.Midlaware;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
@@ -21,6 +22,7 @@ namespace HCL.IdentityServer.API
             webApplicationBuilder.Services.AddScoped<IAccountService, AccountService>();
             webApplicationBuilder.Services.AddScoped<IRegistrationService, RegistrationService>();
         }
+
         public static void AddJWT(this WebApplicationBuilder webApplicationBuilder)
         {
             webApplicationBuilder.Services.Configure<JWTSettings>(webApplicationBuilder.Configuration.GetSection("JWTSettings"));
@@ -51,6 +53,12 @@ namespace HCL.IdentityServer.API
                     LifetimeValidator = JwtHelper.CustomLifeTimeValidator
                 };
             });
+        }
+
+        public static void AddMiddleware(this WebApplication webApplication)
+        {
+            webApplication.UseMiddleware<ExceptionHandlingMiddleware>();
+            webApplication.UseMiddleware<CheckDBMiddleware>();
         }
     }
 }

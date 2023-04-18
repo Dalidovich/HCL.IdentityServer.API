@@ -39,6 +39,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             {
                 throw new KeyNotFoundException("[DeleteAccount]");
             }
+
             var accountIsDelete = _accountRepository.Delete(entity);
             await _accountRepository.SaveAsync();
 

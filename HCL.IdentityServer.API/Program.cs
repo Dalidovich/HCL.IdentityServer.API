@@ -1,4 +1,3 @@
-using HCL.IdentityServer.API.BLL.Midlaware;
 using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,6 @@ namespace HCL.IdentityServer.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
 
             builder.Services.AddControllers();
             builder.Services.AddSingleton(builder.Configuration);
@@ -31,13 +29,9 @@ namespace HCL.IdentityServer.API
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-            app.UseMiddleware<CheckDBMiddleware>();
+
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

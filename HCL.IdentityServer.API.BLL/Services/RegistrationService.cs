@@ -37,6 +37,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                     StatusCode = StatusCode.AccountExist
                 };
             }
+
             CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
             newAccount = (await _accountService.CreateAccount(newAccount)).Data;

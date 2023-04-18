@@ -1,9 +1,4 @@
-﻿using HCL.IdentityServer.API.DAL;
-using HCL.IdentityServer.API.Domain.DTO;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using HCL.IdentityServer.API.Domain.DTO;
 using Npgsql;
 using System.Net;
 
