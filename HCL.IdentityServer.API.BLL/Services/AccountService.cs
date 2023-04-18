@@ -13,144 +13,82 @@ namespace HCL.IdentityServer.API.BLL.Services
     {
         private readonly IAccountRepository _accountRepository;
         protected readonly ILogger<IAccountService> _logger;
+
         public AccountService(IAccountRepository repository, ILogger<IAccountService> logger)
         {
             _accountRepository = repository;
             _logger = logger;
         }
+
         public async Task<BaseResponse<Account>> CreateAccount(Account account)
         {
-            try
+            var createdAccount = await _accountRepository.AddAsync(account);
+            await _accountRepository.SaveAsync();
+
+            return new StandartResponse<Account>()
             {
-                var createdAccount = await _accountRepository.AddAsync(account);
-                await _accountRepository.SaveAsync();
-                return new StandartResponse<Account>()
-                {
-                    Data = createdAccount,
-                    StatusCode = StatusCode.AccountCreate
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[CreateAccount] : {ex.Message}");
-                return new StandartResponse<Account>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
+                Data = createdAccount,
+                StatusCode = StatusCode.AccountCreate
+            };
         }
 
         public async Task<BaseResponse<bool>> DeleteAccount(Expression<Func<Account, bool>> expression)
         {
-            try
+            var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
+            if (entity == null)
             {
-                var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
-                if (entity == null)
-                {
-                    return new StandartResponse<bool>()
-                    {
-                        Message = "entity not found"
-                    };
-                }
-                var accountIsDelete = _accountRepository.Delete(entity);
-                await _accountRepository.SaveAsync();
-                return new StandartResponse<bool>()
-                {
-                    Data = accountIsDelete,
-                    StatusCode = StatusCode.AccountDelete
-                };
+                throw new KeyNotFoundException("[DeleteAccount]");
             }
-            catch (Exception ex)
+            var accountIsDelete = _accountRepository.Delete(entity);
+            await _accountRepository.SaveAsync();
+
+            return new StandartResponse<bool>()
             {
-                _logger.LogError(ex, $"[DeleteAccount] : {ex.Message}");
-                return new StandartResponse<bool>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
+                Data = accountIsDelete,
+                StatusCode = StatusCode.AccountDelete
+            };
         }
 
         public async Task<BaseResponse<Account>> GetAccount(Expression<Func<Account, bool>> expression)
         {
-            try
+            var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
+            if (entity == null)
             {
-                var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
-                if (entity == null)
-                {
-                    return new StandartResponse<Account>()
-                    {
-                        Message = "entity not found"
-                    };
-                }
-                return new StandartResponse<Account>()
-                {
-                    Data = entity,
-                    StatusCode = StatusCode.AccountRead
-                };
+                throw new KeyNotFoundException("[GetAccount]");
             }
-            catch (Exception ex)
+
+            return new StandartResponse<Account>()
             {
-                _logger.LogError(ex, $"[GetAccount] : {ex.Message}");
-                return new StandartResponse<Account>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
+                Data = entity,
+                StatusCode = StatusCode.AccountRead
+            };
         }
 
         public async Task<BaseResponse<IEnumerable<Account>>> GetAllAccounts()
         {
-            try
+            var contents = await _accountRepository.GetAll().ToListAsync();
+            if (contents == null)
             {
-                var contents = await _accountRepository.GetAll().ToListAsync();
-                if (contents == null)
-                {
-                    return new StandartResponse<IEnumerable<Account>>()
-                    {
-                        Message = "entity not found"
-                    };
-                }
-                return new StandartResponse<IEnumerable<Account>>()
-                {
-                    Data = contents,
-                    StatusCode = StatusCode.AccountRead
-                };
+                throw new KeyNotFoundException("[GetAllAccounts]");
             }
-            catch (Exception ex)
+
+            return new StandartResponse<IEnumerable<Account>>()
             {
-                _logger.LogError(ex, $"[GetAllAccounts] : {ex.Message}");
-                return new StandartResponse<IEnumerable<Account>>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
+                Data = contents,
+                StatusCode = StatusCode.AccountRead
+            };
         }
 
         public async Task<BaseResponse<Account>> UpdateAccount(Account account)
         {
-            try
+            var updatedAccount = _accountRepository.Update(account);
+            await _accountRepository.SaveAsync();
+
+            return new StandartResponse<Account>()
             {
-                var updatedAccount = _accountRepository.Update(account);
-                await _accountRepository.SaveAsync();
-                return new StandartResponse<Account>()
-                {
-                    Data = updatedAccount,
-                    StatusCode = StatusCode.AccountUpdate,
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[UpdateAccount] : {ex.Message}");
-                return new StandartResponse<Account>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
+                Data = updatedAccount,
+                StatusCode = StatusCode.AccountUpdate,
+            };
         }
     }
 }
