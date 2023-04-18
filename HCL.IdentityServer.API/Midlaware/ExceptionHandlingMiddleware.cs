@@ -2,7 +2,7 @@
 using Npgsql;
 using System.Net;
 
-namespace HCL.IdentityServer.API.BLL.Midlaware
+namespace HCL.IdentityServer.API.Midlaware
 {
     public class ExceptionHandlingMiddleware
     {

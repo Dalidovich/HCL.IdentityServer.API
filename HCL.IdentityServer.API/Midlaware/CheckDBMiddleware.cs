@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
-namespace HCL.IdentityServer.API.BLL.Midlaware
+namespace HCL.IdentityServer.API.Midlaware
 {
     public class CheckDBMiddleware
     {
