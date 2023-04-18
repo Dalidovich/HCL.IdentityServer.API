@@ -55,6 +55,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             if (account.Data == null ||
                 !VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
             {
+
                 throw new KeyNotFoundException("[Authenticate]");
             }
             string token = GetToken(account.Data);

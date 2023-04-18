@@ -28,6 +28,7 @@ namespace HCL.IdentityServer.API.DAL.Repositories
 
         public IQueryable<Account> GetAll()
         {
+
             return _db.Accounts;
         }
 

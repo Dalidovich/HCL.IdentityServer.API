@@ -37,6 +37,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
             if (entity == null)
             {
+
                 throw new KeyNotFoundException("[DeleteAccount]");
             }
 
@@ -55,6 +56,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
             if (entity == null)
             {
+
                 throw new KeyNotFoundException("[GetAccount]");
             }
 
@@ -70,6 +72,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             var contents = await _accountRepository.GetAll().ToListAsync();
             if (contents == null)
             {
+
                 throw new KeyNotFoundException("[GetAllAccounts]");
             }
 

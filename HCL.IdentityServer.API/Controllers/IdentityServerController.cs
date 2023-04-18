@@ -25,11 +25,13 @@ namespace HCL.IdentityServer.API.Controllers
         {
             if (accountDTO == null)
             {
+
                 return BadRequest();
             }
             var resourse = await _registrationService.Authenticate(accountDTO);
             if (resourse.StatusCode == Domain.Enums.StatusCode.AccountAuthenticate)
             {
+
                 return Ok(resourse.Data);
             }
 
@@ -43,15 +45,18 @@ namespace HCL.IdentityServer.API.Controllers
             {
                 if (accountDTO == null)
                 {
+
                     return BadRequest();
                 }
                 var resourse = await _registrationService.Registration(accountDTO);
                 if (resourse.StatusCode == Domain.Enums.StatusCode.AccountCreate)
                 {
+
                     return Created("", resourse.Data);
                 }
                 if (resourse.StatusCode == Domain.Enums.StatusCode.AccountExist)
                 {
+
                     return Conflict("Account Exist");
                 }
             }
@@ -66,10 +71,12 @@ namespace HCL.IdentityServer.API.Controllers
             var resourse = await _accountService.DeleteAccount(x => x.Id == id);
             if (resourse.Data)
             {
+
                 return Ok(resourse.Data);
             }
             else
             {
+
                 return BadRequest();
             }
         }
