@@ -39,24 +39,16 @@ namespace HCL.IdentityServer.API.Controllers
         [HttpPost("v1/Registration/")]
         public async Task<IActionResult> Registration([FromQuery] AccountDTO accountDTO)
         {
-            if (ModelState.IsValid)
+            var resourse = await _registrationService.Registration(accountDTO);
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountCreate)
             {
-                if (accountDTO == null)
-                {
 
-                    return BadRequest();
-                }
-                var resourse = await _registrationService.Registration(accountDTO);
-                if (resourse.StatusCode == Domain.Enums.StatusCode.AccountCreate)
-                {
+                return Created("", resourse.Data);
+            }
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountExist)
+            {
 
-                    return Created("", resourse.Data);
-                }
-                if (resourse.StatusCode == Domain.Enums.StatusCode.AccountExist)
-                {
-
-                    return Conflict("Account Exist");
-                }
+                return Conflict("Account Exist");
             }
 
             return BadRequest();
