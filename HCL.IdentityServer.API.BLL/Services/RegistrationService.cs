@@ -16,13 +16,13 @@ namespace HCL.IdentityServer.API.BLL.Services
 {
     public class RegistrationService : IRegistrationService
     {
-        private readonly JWTSettings _options;
         private readonly IAccountService _accountService;
+        private readonly ITokenService _tokenService;
 
-        public RegistrationService(IOptions<JWTSettings> options, IAccountService accountService)
+        public RegistrationService(IAccountService accountService, ITokenService tokenService)
         {
-            _options = options.Value;
             _accountService = accountService;
+            _tokenService = tokenService;
         }
         public async Task<BaseResponse<AuthDTO>> Registration(AccountDTO DTO)
         {
@@ -36,7 +36,7 @@ namespace HCL.IdentityServer.API.BLL.Services
                 };
             }
 
-            CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            _tokenService.CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
             var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
             newAccount = (await _accountService.CreateAccount(newAccount)).Data;
 
@@ -51,60 +51,17 @@ namespace HCL.IdentityServer.API.BLL.Services
         {
             var account = await _accountService.GetAccount(x => x.Login == DTO.Login);
             if (account.Data == null ||
-                !VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
+                !_tokenService.VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
             {
-
                 throw new KeyNotFoundException("[Authenticate]");
             }
-            string token = GetToken(account.Data);
+            string token = _tokenService.GetToken(account.Data);
 
             return new StandartResponse<AuthDTO>()
             {
                 Data = new AuthDTO(token, (Guid)account.Data.Id),
                 StatusCode = StatusCode.AccountAuthenticate
             };
-        }
-
-        public string GetToken(Account account)
-        {
-            List<Claim> claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name,account.Login),
-                new Claim(ClaimTypes.Role, account.Role.ToString()),
-                new Claim(CustomClaimType.AccountId, account.Id.ToString())
-            };
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-
-            var jwt = new JwtSecurityToken(
-                    issuer: _options.Issuer,
-                    audience: _options.Audience,
-                    claims: claims,
-                    expires: DateTime.Now.Add(TimeSpan.FromMinutes(StandartConst.StartJWTTokenLifeTime)),
-                    notBefore: DateTime.Now,
-                    signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
-                );
-
-            return new JwtSecurityTokenHandler().WriteToken(jwt);
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
-            }
-        }
-
-        private bool VerifyPasswordHash(string Password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512(passwordSalt))
-            {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(Password));
-
-                return computedHash.SequenceEqual(passwordHash);
-            }
         }
     }
 }

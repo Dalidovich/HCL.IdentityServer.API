@@ -21,6 +21,7 @@ namespace HCL.IdentityServer.API
         {
             webApplicationBuilder.Services.AddScoped<IAccountService, AccountService>();
             webApplicationBuilder.Services.AddScoped<IRegistrationService, RegistrationService>();
+            webApplicationBuilder.Services.AddScoped<ITokenService, TokenService>();
         }
 
         public static void AddJWT(this WebApplicationBuilder webApplicationBuilder)

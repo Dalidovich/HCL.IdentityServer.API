@@ -31,7 +31,6 @@ namespace HCL.IdentityServer.API.Midlaware
                 {
                     httpContext.RequestServices.GetService<AppDBContext>().UpdateDatabase();
                 }
-
                 throw ex;
             }
             await _next.Invoke(httpContext);
