@@ -1,3 +1,4 @@
+using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +22,7 @@ namespace HCL.IdentityServer.API
 
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+            builder.Services.AddGrpc();
 
             var app = builder.Build();
 
@@ -30,6 +32,7 @@ namespace HCL.IdentityServer.API
                 app.UseSwaggerUI();
             }
             app.AddMiddleware();
+            app.AddGrpcService();
 
             app.UseHttpsRedirection();
             app.UseAuthorization();

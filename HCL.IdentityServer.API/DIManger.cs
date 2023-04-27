@@ -1,4 +1,5 @@
-﻿using HCL.IdentityServer.API.BLL.Interfaces;
+﻿using Google.Protobuf.WellKnownTypes;
+using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
@@ -60,6 +61,11 @@ namespace HCL.IdentityServer.API
         {
             webApplication.UseMiddleware<ExceptionHandlingMiddleware>();
             webApplication.UseMiddleware<CheckDBMiddleware>();
+        }
+
+        public static void AddGrpcService(this WebApplication webApplication)
+        {
+            webApplication.MapGrpcService<AthorPublicProfileService>();
         }
     }
 }

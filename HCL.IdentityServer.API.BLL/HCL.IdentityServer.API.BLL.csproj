@@ -5,10 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
+  
   <ItemGroup>
+    <Protobuf Include="Protos\AthorService.proto" GrpcServices="Server" />
+  </ItemGroup>
+
+  <ItemGroup>    
     <PackageReference Include="JWT" Version="10.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.2" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.52.0" />
   </ItemGroup>
   
   <ItemGroup>
