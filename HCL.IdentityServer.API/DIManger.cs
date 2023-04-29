@@ -25,6 +25,11 @@ namespace HCL.IdentityServer.API
             webApplicationBuilder.Services.AddScoped<ITokenService, TokenService>();
         }
 
+        public static void AddHostedService(this WebApplicationBuilder webApplicationBuilder)
+        {
+            webApplicationBuilder.Services.AddHostedService<GrpcEndpoinListenHostService>();
+        }
+
         public static void AddJWT(this WebApplicationBuilder webApplicationBuilder)
         {
             webApplicationBuilder.Services.Configure<JWTSettings>(webApplicationBuilder.Configuration.GetSection("JWTSettings"));

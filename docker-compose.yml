@@ -1,8 +1,8 @@
 version: '3.4'
 
 networks:
-  dev:
-    driver: bridge
+  hclarticleserviceapi_dev:
+    external: true
 
 services:
   hcl.identityserver.api:
@@ -13,10 +13,13 @@ services:
     build:
       context: .
       dockerfile: HCL.IdentityServer.API/Dockerfile
+    ports: 
+      - "5001:5001"
     environment:
-      - ConnectionStrings__NpgConnectionString=User Id=postgres; Password=pg; Server=app_db_hcl_identity; Port=5432; Database=HCL_IdentityServer; IntegratedSecurity=true; Pooling=true;
+      GRPC-SERVER-PORT: 5001
+      ConnectionStrings__NpgConnectionString: User Id=postgres; Password=pg; Server=app_db_hcl_identity; Port=5432; Database=HCL_IdentityServer; IntegratedSecurity=true; Pooling=true;
     networks:
-      - dev
+      - hclarticleserviceapi_dev
 
   app_db_hcl_identity: 
     image: postgres:latest
@@ -31,7 +34,7 @@ services:
     volumes:
       - app_data:/var/lib/postgresql/data
     networks:
-      - dev
+      - hclarticleserviceapi_dev
             
 volumes:
   app_data:

@@ -4,7 +4,6 @@ using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Domain.InnerResponse;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
 namespace HCL.IdentityServer.API.BLL.Services

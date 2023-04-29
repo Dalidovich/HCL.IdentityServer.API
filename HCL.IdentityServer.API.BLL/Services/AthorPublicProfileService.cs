@@ -17,6 +17,20 @@ namespace HCL.IdentityServer.API.BLL.Services
         public override async Task<AthorPublicProfileReply> GetProfile(AthorIdRequest request, ServerCallContext context)
         {
             var account = await _accountService.GetAccount(x => x.Id == new Guid(request.AccountId));
+
+            Console.WriteLine(account.StatusCode);
+
+            if (account.StatusCode == Domain.Enums.StatusCode.EntityNotFound)
+            {
+
+                return await Task.FromResult(new AthorPublicProfileReply
+                {
+                    Login = "-",
+                    Status = "not exist",
+                    CreateDate = Timestamp.FromDateTimeOffset(DateTime.Now)
+                });
+            }
+
             return await Task.FromResult(new AthorPublicProfileReply
             {
                 Login = account.Data.Login,
