@@ -1,9 +1,9 @@
-﻿using Google.Protobuf.WellKnownTypes;
-using HCL.IdentityServer.API.BLL.Interfaces;
+﻿using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.JWT;
+using HCL.IdentityServer.API.HostedService;
 using HCL.IdentityServer.API.Midlaware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;

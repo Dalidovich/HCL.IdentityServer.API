@@ -1,8 +1,8 @@
 ﻿using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL;
-using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.DAL.Repositories;
+using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
