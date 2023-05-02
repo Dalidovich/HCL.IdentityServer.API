@@ -4,6 +4,7 @@ using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Enums;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 
 namespace HCL.IdentityServer.API.HostedService
@@ -22,6 +23,10 @@ namespace HCL.IdentityServer.API.HostedService
             services.AddGrpc();
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = _configuration.GetSection("RedisOption:Host").Value;
+            });
             services.AddDbContext<AppDBContext>(opt => opt.UseNpgsql(
                 _configuration.GetConnectionString(StandartConst.NameConnection)));
         }

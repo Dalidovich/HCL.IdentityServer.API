@@ -30,6 +30,14 @@ namespace HCL.IdentityServer.API
             webApplicationBuilder.Services.AddHostedService<GrpcEndpoinListenHostService>();
         }
 
+        public static void AddRedisPropperty(this WebApplicationBuilder webApplicationBuilder) 
+        {
+            webApplicationBuilder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = webApplicationBuilder.Configuration.GetSection("RedisOption:Host").Value;
+            });
+        }
+
         public static void AddJWT(this WebApplicationBuilder webApplicationBuilder)
         {
             webApplicationBuilder.Services.Configure<JWTSettings>(webApplicationBuilder.Configuration.GetSection("JWTSettings"));

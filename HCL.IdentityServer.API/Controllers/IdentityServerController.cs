@@ -18,7 +18,7 @@ namespace HCL.IdentityServer.API.Controllers
             _accountService = accountService;
         }
 
-        [HttpPost("v1/Authenticate/")]
+        [HttpPost("v1/authenticate/")]
         public async Task<IActionResult> Authenticate([FromQuery] AccountDTO accountDTO)
         {
             if (accountDTO == null)
@@ -36,7 +36,7 @@ namespace HCL.IdentityServer.API.Controllers
             return Unauthorized();
         }
 
-        [HttpPost("v1/Registration/")]
+        [HttpPost("v1/registration/")]
         public async Task<IActionResult> Registration([FromQuery] AccountDTO accountDTO)
         {
             var resourse = await _registrationService.Registration(accountDTO);
@@ -55,7 +55,7 @@ namespace HCL.IdentityServer.API.Controllers
         }
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("v1/Account/")]
+        [HttpDelete("v1/account/")]
         public async Task<IActionResult> Delete([FromQuery] Guid id)
         {
             var resourse = await _accountService.DeleteAccount(x => x.Id == id);
