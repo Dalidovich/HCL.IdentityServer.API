@@ -2,20 +2,18 @@
 using Grpc.Core;
 using HCL.IdentityServer.API.BLL.gRPCServices;
 using HCL.IdentityServer.API.BLL.Interfaces;
-using Microsoft.Extensions.Caching.Distributed;
-using System.Text.Json;
 
 namespace HCL.IdentityServer.API.BLL.Services
 {
     public class AthorPublicProfileService : AthorPublicProfile.AthorPublicProfileBase
     {
         private readonly IAccountService _accountService;
-        private readonly IDistributedCache _distributedCache;
+        private readonly IRedisLockService _redisLockService;
 
-        public AthorPublicProfileService(IAccountService accountService, IDistributedCache cache)
+        public AthorPublicProfileService(IAccountService accountService, IRedisLockService redisLockService)
         {
             _accountService = accountService;
-            _distributedCache = cache;
+            _redisLockService = redisLockService;
         }
 
         public override async Task<AthorPublicProfileReply> GetProfile(AthorIdRequest request, ServerCallContext context)
@@ -38,11 +36,8 @@ namespace HCL.IdentityServer.API.BLL.Services
                 Status = account.Data.StatusAccount.ToString(),
                 CreateDate = Timestamp.FromDateTimeOffset(account.Data.CreateDate)
             };
-            var accountString = JsonSerializer.Serialize(reply);
-            await _distributedCache.SetStringAsync(account.Data.Id.ToString(), accountString, new DistributedCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2)
-            });
+
+            await _redisLockService.SetString(reply, account.Data.Id.ToString());
 
             return await Task.FromResult(reply);
         }

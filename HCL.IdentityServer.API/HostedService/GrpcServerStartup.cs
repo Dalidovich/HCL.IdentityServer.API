@@ -3,9 +3,10 @@ using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
+using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Enums;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace HCL.IdentityServer.API.HostedService
 {
@@ -23,10 +24,16 @@ namespace HCL.IdentityServer.API.HostedService
             services.AddGrpc();
             services.AddScoped<IAccountRepository, AccountRepository>();
             services.AddScoped<IAccountService, AccountService>();
+            services.AddScoped<IRedisLockService, RedisLockService>();
+
             services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = _configuration.GetSection("RedisOption:Host").Value;
+                options.Configuration = _configuration.GetSection("RedisOptions:Host").Value;
             });
+
+            services.Configure<RedisOptions>(_configuration.GetSection("RedisOptions"));
+            services.AddSingleton(serviceProvider => serviceProvider.GetRequiredService<IOptions<RedisOptions>>().Value);
+
             services.AddDbContext<AppDBContext>(opt => opt.UseNpgsql(
                 _configuration.GetConnectionString(StandartConst.NameConnection)));
         }

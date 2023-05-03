@@ -34,7 +34,7 @@ namespace HCL.IdentityServer.API
         {
             webApplicationBuilder.Services.AddStackExchangeRedisCache(options =>
             {
-                options.Configuration = webApplicationBuilder.Configuration.GetSection("RedisOption:Host").Value;
+                options.Configuration = webApplicationBuilder.Configuration.GetSection("RedisOptions:Host").Value;
             });
         }
 
