@@ -1,0 +1,23 @@
+﻿syntax = "proto3";
+
+option csharp_namespace = "HCL.IdentityServer.API.BLL.gRPCServices";
+
+import "google/protobuf/timestamp.proto";
+package AthorService;
+
+service AthorPublicProfile
+{
+    rpc GetProfile (AthorIdRequest) returns (AthorPublicProfileReply);
+}
+
+message AthorIdRequest
+{
+  string AccountId = 1;
+}
+
+message AthorPublicProfileReply
+{
+  string Login = 1;
+  string Status = 2;
+  google.protobuf.Timestamp CreateDate= 3;
+}

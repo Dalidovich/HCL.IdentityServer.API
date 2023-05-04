@@ -43,7 +43,6 @@ namespace HCL.IdentityServer.API.DAL.Configuration
             builder.Property(e => e.Role)
                    .HasColumnType(EntityDataTypes.Smallint)
                    .HasColumnName("role");
-
         }
     }
 }

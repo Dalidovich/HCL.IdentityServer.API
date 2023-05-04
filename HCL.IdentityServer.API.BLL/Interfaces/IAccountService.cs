@@ -11,6 +11,5 @@ namespace HCL.IdentityServer.API.BLL.Interfaces
         public Task<BaseResponse<Account>> CreateAccount(Account account);
         public Task<BaseResponse<Account>> UpdateAccount(Account account);
         public Task<BaseResponse<bool>> DeleteAccount(Expression<Func<Account, bool>> expression);
-
     }
 }

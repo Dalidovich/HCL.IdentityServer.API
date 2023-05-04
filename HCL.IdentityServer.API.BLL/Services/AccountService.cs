@@ -4,7 +4,6 @@ using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Domain.InnerResponse;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
 
 namespace HCL.IdentityServer.API.BLL.Services
@@ -12,12 +11,10 @@ namespace HCL.IdentityServer.API.BLL.Services
     public class AccountService : IAccountService
     {
         private readonly IAccountRepository _accountRepository;
-        protected readonly ILogger<IAccountService> _logger;
 
-        public AccountService(IAccountRepository repository, ILogger<IAccountService> logger)
+        public AccountService(IAccountRepository repository)
         {
             _accountRepository = repository;
-            _logger = logger;
         }
 
         public async Task<BaseResponse<Account>> CreateAccount(Account account)
@@ -37,8 +34,13 @@ namespace HCL.IdentityServer.API.BLL.Services
             var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
             if (entity == null)
             {
-                throw new KeyNotFoundException("[DeleteAccount]");
+
+                return new StandartResponse<bool>()
+                {
+                    Data= false,
+                };
             }
+
             var accountIsDelete = _accountRepository.Delete(entity);
             await _accountRepository.SaveAsync();
 
@@ -54,7 +56,8 @@ namespace HCL.IdentityServer.API.BLL.Services
             var entity = await _accountRepository.GetAll().SingleOrDefaultAsync(expression);
             if (entity == null)
             {
-                throw new KeyNotFoundException("[GetAccount]");
+
+                return new StandartResponse<Account>();
             }
 
             return new StandartResponse<Account>()

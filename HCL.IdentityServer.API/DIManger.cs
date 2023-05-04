@@ -3,6 +3,8 @@ using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.JWT;
+using HCL.IdentityServer.API.HostedService;
+using HCL.IdentityServer.API.Midlaware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -20,7 +22,22 @@ namespace HCL.IdentityServer.API
         {
             webApplicationBuilder.Services.AddScoped<IAccountService, AccountService>();
             webApplicationBuilder.Services.AddScoped<IRegistrationService, RegistrationService>();
+            webApplicationBuilder.Services.AddScoped<ITokenService, TokenService>();
         }
+
+        public static void AddHostedService(this WebApplicationBuilder webApplicationBuilder)
+        {
+            webApplicationBuilder.Services.AddHostedService<GrpcEndpoinListenHostService>();
+        }
+
+        public static void AddRedisPropperty(this WebApplicationBuilder webApplicationBuilder) 
+        {
+            webApplicationBuilder.Services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = webApplicationBuilder.Configuration.GetSection("RedisOptions:Host").Value;
+            });
+        }
+
         public static void AddJWT(this WebApplicationBuilder webApplicationBuilder)
         {
             webApplicationBuilder.Services.Configure<JWTSettings>(webApplicationBuilder.Configuration.GetSection("JWTSettings"));
@@ -51,6 +68,17 @@ namespace HCL.IdentityServer.API
                     LifetimeValidator = JwtHelper.CustomLifeTimeValidator
                 };
             });
+        }
+
+        public static void AddMiddleware(this WebApplication webApplication)
+        {
+            webApplication.UseMiddleware<ExceptionHandlingMiddleware>();
+            webApplication.UseMiddleware<CheckDBMiddleware>();
+        }
+
+        public static void AddGrpcService(this WebApplication webApplication)
+        {
+            webApplication.MapGrpcService<AthorPublicProfileService>();
         }
     }
 }
