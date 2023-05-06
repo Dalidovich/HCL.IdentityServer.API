@@ -1,6 +1,8 @@
-﻿using HCL.IdentityServer.API.BLL.Interfaces;
+﻿using Grpc.Core;
+using HCL.IdentityServer.API.BLL.gRPCServices;
+using HCL.IdentityServer.API.BLL.Interfaces;
+using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Entities;
-using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Domain.InnerResponse;
 using HCL.IdentityServer.API.Domain.JWT;
 using Microsoft.Extensions.Options;
@@ -35,15 +37,71 @@ namespace HCL.IdentityServer.API.Test
             return acc;
         }
 
-        public static Mock<IAccountService> createAccountServiceMock(List<Account> accounts)
+        public static Mock<IRedisLockService> CreateRedisLockServiceMock()
+        {
+            var redisLockServ = new Mock<IRedisLockService>();
+            redisLockServ
+                .Setup(r => r.SetString(It.IsAny<AthorPublicProfileReply>(), It.IsAny<string>()));
+
+            return redisLockServ;
+        }
+
+        public static Mock<IAccountRepository> CreateAccountRepositoryMock(List<Account> accounts)
+        {
+            var accRep = new Mock<IAccountRepository>();
+            accRep
+                .Setup(r => r.AddAsync(It.IsAny<Account>()))
+                .ReturnsAsync((Account account) =>
+                {
+
+                    return _addAccount(account, accounts);
+                });
+
+            accRep.Setup(r => r.Update(It.IsAny<Account>()))
+                .Returns((Account account) =>
+                {
+                    var updated = accounts.Where(x => x.Id == account.Id).SingleOrDefault();
+
+                    if (updated != null)
+                    {
+                        accounts.Remove(updated);
+                        accounts.Add(account);
+
+                        return account;
+                    }
+
+                    return null;
+                });
+
+            accRep.Setup(r => r.SaveAsync());
+
+            return accRep;
+        }
+
+        public static Mock<ServerCallContext> CreateServerCallContextMock()
+        {
+            var serverCallContext = new Mock<ServerCallContext>();
+
+            return serverCallContext;
+        }
+
+        public static Mock<IAccountService> CreateAccountServiceMock(List<Account> accounts)
         {
             var mockAccServ = new Mock<IAccountService>();
             mockAccServ
                 .Setup(s => s.GetAccount(It.IsAny<Expression<Func<Account, bool>>>()))
-                .ReturnsAsync((Expression<Func<Account, bool>> expression) => new StandartResponse<Account>()
+                .ReturnsAsync((Expression<Func<Account, bool>> expression) =>
                 {
-                    Data = accounts.Where(expression.Compile()).SingleOrDefault(),
-                    StatusCode = StatusCode.AccountRead
+                    var account = accounts.Where(expression.Compile()).SingleOrDefault();
+                    if (account != null)
+                    {
+                        return new StandartResponse<Account>()
+                        {
+                            Data = account,
+                            StatusCode = Domain.Enums.StatusCode.AccountRead
+                        };
+                    }
+                    return new StandartResponse<Account>();
                 });
 
             mockAccServ
@@ -51,7 +109,15 @@ namespace HCL.IdentityServer.API.Test
                 .ReturnsAsync((Account account) => new StandartResponse<Account>()
                 {
                     Data = _addAccount(account, accounts),
-                    StatusCode = StatusCode.AccountRead
+                    StatusCode = Domain.Enums.StatusCode.AccountRead
+                });
+
+            mockAccServ
+                .Setup(s => s.DeleteAccount(It.IsAny<Expression<Func<Account, bool>>>()))
+                .ReturnsAsync((Expression<Func<Account, bool>> expression) => new StandartResponse<bool>()
+                {
+                    Data = accounts.Remove(accounts.Where(expression.Compile()).SingleOrDefault()),
+                    StatusCode = Domain.Enums.StatusCode.AccountDelete
                 });
 
             return mockAccServ;

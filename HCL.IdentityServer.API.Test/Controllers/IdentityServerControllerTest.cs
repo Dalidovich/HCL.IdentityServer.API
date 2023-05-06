@@ -10,11 +10,12 @@ namespace HCL.IdentityServer.API.Test.Controllers
     public class IdentityServerControllerTest
     {
         [Fact]
-        public async Task RegistrationNewAccountTest()
+        public async Task Registration_WithRightAuthData_ReturnCreatedResult()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -26,7 +27,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
                 Password = "123456",
             };
 
+            //Act
             var createdResult = await controller.Registration(accountForRegistration) as CreatedResult;
+
+            //Assert
             Assert.NotNull(createdResult);
 
             var authDTO = createdResult.Value as AuthDTO;
@@ -37,11 +41,12 @@ namespace HCL.IdentityServer.API.Test.Controllers
         }
 
         [Fact]
-        public async Task RegistrationAlredyExistAccountTest()
+        public async Task Registration_WithAlredyExistAccount_ReturnConflictObjectResult()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -53,20 +58,23 @@ namespace HCL.IdentityServer.API.Test.Controllers
                 Password = "123456",
             };
 
+            //Act
             await controller.Registration(accountForRegistration);
             var conflictObjectResult = await controller.Registration(accountForRegistration) as ConflictObjectResult;
 
+            //Assert
             Assert.NotEmpty(accounts);
             Assert.NotNull(conflictObjectResult);
             Assert.Single(accounts);
         }
 
         [Fact]
-        public async Task SuccessAuntificationAccountTest()
+        public async Task AuntificationAccount_WithRightAuthData_ReturnOkObjectResult()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -78,8 +86,11 @@ namespace HCL.IdentityServer.API.Test.Controllers
                 Password = "123456",
             };
 
+            //Act
             await controller.Registration(accountForRegistration);
             var okObjectResult = await controller.Authenticate(accountForRegistration) as OkObjectResult;
+
+            //Assert
             Assert.NotNull(okObjectResult);
 
             var authDTO = okObjectResult.Value as AuthDTO;
@@ -88,11 +99,12 @@ namespace HCL.IdentityServer.API.Test.Controllers
         }
 
         [Fact]
-        public async Task FailAuntificationAccountTest()
+        public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -104,6 +116,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
                 Password = "123456",
             };
 
+            //Act
             await controller.Registration(accountForRegistration);
 
             accountForRegistration.Login = "Dima";
@@ -111,6 +124,9 @@ namespace HCL.IdentityServer.API.Test.Controllers
             try
             {
                 await controller.Authenticate(accountForRegistration);
+
+                //Assert
+                Assert.Fail("");
             }
             catch (KeyNotFoundException ex)
             {
@@ -121,6 +137,59 @@ namespace HCL.IdentityServer.API.Test.Controllers
             {
                 Assert.Fail("");
             }
+        }
+
+        [Fact]
+        public async Task DeleteAccount_WithExistAccount_ReturnOkTrueBoolean()
+        {
+            //Arrange
+            List<Account> accounts = new List<Account>();
+
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+
+            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var controller = new IdentityServerController(regServ, mockAccServ.Object);
+
+            var accountForRegistration = new AccountDTO()
+            {
+                Login = "Ilia",
+                Password = "123456",
+            };
+
+            //Act
+            await controller.Registration(accountForRegistration);
+            var okObjectResult = await controller.Delete((Guid)accounts.First().Id) as OkObjectResult;
+
+            //Assert
+            Assert.NotNull(okObjectResult);
+            Assert.Empty(accounts);
+        }
+
+        [Fact]
+        public async Task DeleteAccount_WithNotExistAccount_ReturnOkTrueBoolean()
+        {
+            //Arrange
+            List<Account> accounts = new List<Account>();
+
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+
+            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var controller = new IdentityServerController(regServ, mockAccServ.Object);
+
+            var accountForRegistration = new AccountDTO()
+            {
+                Login = "Ilia",
+                Password = "123456",
+            };
+
+            //Act
+            var badRequestResult = await controller.Delete(Guid.NewGuid()) as BadRequestResult;
+
+            //Assert
+            Assert.NotNull(badRequestResult);
+            Assert.Empty(accounts);
         }
     }
 }

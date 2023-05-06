@@ -4,6 +4,7 @@ using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Domain.InnerResponse;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualBasic;
 using System.Linq.Expressions;
 
 namespace HCL.IdentityServer.API.BLL.Services
@@ -37,7 +38,7 @@ namespace HCL.IdentityServer.API.BLL.Services
 
                 return new StandartResponse<bool>()
                 {
-                    Data= false,
+                    Data = false,
                 };
             }
 
@@ -85,6 +86,10 @@ namespace HCL.IdentityServer.API.BLL.Services
         public async Task<BaseResponse<Account>> UpdateAccount(Account account)
         {
             var updatedAccount = _accountRepository.Update(account);
+            if (updatedAccount == null)
+            {
+                return new StandartResponse<Account>();
+            }
             await _accountRepository.SaveAsync();
 
             return new StandartResponse<Account>()

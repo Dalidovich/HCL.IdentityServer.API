@@ -9,11 +9,12 @@ namespace HCL.IdentityServer.API.Test.Services
     public class RegistrationServiceTest
     {
         [Fact]
-        public async Task RegistrationNewAccountTest()
+        public async Task Registration_WithRightAuthData_ReturnNewAccount()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -24,8 +25,10 @@ namespace HCL.IdentityServer.API.Test.Services
                 Password = "123456",
             };
 
+            //Act
             var authDTO = await regServ.Registration(accountForRegistration);
 
+            //Assert
             Assert.NotEmpty(accounts);
             Assert.NotNull(authDTO);
             Assert.Equal(accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Login, accountForRegistration.Login);
@@ -34,11 +37,12 @@ namespace HCL.IdentityServer.API.Test.Services
         }
 
         [Fact]
-        public async Task RegistrationAlredyExistAccountTest()
+        public async Task Registration_WithAlredyExistAccount_ReturnExistStatusCode()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -49,9 +53,11 @@ namespace HCL.IdentityServer.API.Test.Services
                 Password = "123456",
             };
 
+            //Act
             await regServ.Registration(accountForRegistration);
             var authDTO = await regServ.Registration(accountForRegistration);
 
+            //Assert
             Assert.NotEmpty(accounts);
             Assert.NotNull(authDTO);
             Assert.Equal(StatusCode.AccountExist, authDTO.StatusCode);
@@ -59,11 +65,12 @@ namespace HCL.IdentityServer.API.Test.Services
 
 
         [Fact]
-        public async Task SuccessAuntificationAccountTest()
+        public async Task AuntificationAccount_WithRightAuthData_ReturnAuthenticateStatusCode()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -74,9 +81,11 @@ namespace HCL.IdentityServer.API.Test.Services
                 Password = "123456",
             };
 
+            //Act
             await regServ.Registration(accountForRegistration);
             var authDTO = await regServ.Authenticate(accountForRegistration);
 
+            //Assert
             Assert.NotEmpty(accounts);
             Assert.NotNull(authDTO);
             Assert.Equal(StatusCode.AccountAuthenticate, authDTO.StatusCode);
@@ -84,11 +93,12 @@ namespace HCL.IdentityServer.API.Test.Services
         }
 
         [Fact]
-        public async Task FailAuntificationAccountTest()
+        public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
+            //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.createAccountServiceMock(accounts);
+            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
 
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
@@ -99,6 +109,7 @@ namespace HCL.IdentityServer.API.Test.Services
                 Password = "123456",
             };
 
+            //Act
             await regServ.Registration(accountForRegistration);
 
             accountForRegistration.Login = "Dima";
@@ -106,6 +117,9 @@ namespace HCL.IdentityServer.API.Test.Services
             try
             {
                 await regServ.Authenticate(accountForRegistration);
+
+                //Assert
+                Assert.Fail("");
             }
             catch (KeyNotFoundException ex)
             {
