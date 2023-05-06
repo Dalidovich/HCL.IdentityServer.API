@@ -1,4 +1,5 @@
-﻿using HCL.IdentityServer.API.BLL.Services;
+﻿using FluentAssertions;
+using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using Xunit;
@@ -30,10 +31,9 @@ namespace HCL.IdentityServer.API.Test.Services
             var addedAccount = await accountServ.CreateAccount(newAccount);
 
             //Assert
-            Assert.NotEmpty(accounts);
-            Assert.Equal(addedAccount.Data.Login, newAccount.Login);
-            Assert.Equal(addedAccount.Data.Login, accounts.First().Login);
-            Assert.Equal(addedAccount.StatusCode, StatusCode.AccountCreate);
+            accounts.Should().NotBeEmpty();
+            addedAccount.Data.Login.Should().Be(newAccount.Login).And.Be(accounts.First().Login);
+            addedAccount.StatusCode.Should().Be(StatusCode.AccountCreate);
         }
 
         [Fact]
@@ -73,10 +73,9 @@ namespace HCL.IdentityServer.API.Test.Services
             var addedAccount = await accountServ.UpdateAccount(newAccount);
 
             //Assert
-            Assert.NotEmpty(accounts);
-            Assert.Equal(newAccount.Login, accounts.First().Login);
-            Assert.Equal(addedAccount.Data.Login, accounts.First().Login);
-            Assert.Equal(addedAccount.StatusCode, StatusCode.AccountUpdate);
+            accounts.Should().NotBeEmpty();
+            accounts.First().Login.Should().Be(newAccount.Login).And.Be(addedAccount.Data.Login);
+            addedAccount.StatusCode.Should().Be(StatusCode.AccountUpdate);
         }
 
         [Fact]
@@ -98,8 +97,8 @@ namespace HCL.IdentityServer.API.Test.Services
             var addedAccount = await accountServ.UpdateAccount(newAccount);
 
             //Assert
-            Assert.Empty(accounts);
-            Assert.Equal(addedAccount.StatusCode, StatusCode.EntityNotFound);
+            accounts.Should().BeEmpty();
+            addedAccount.StatusCode.Should().Be(StatusCode.EntityNotFound);
         }
     }
 }

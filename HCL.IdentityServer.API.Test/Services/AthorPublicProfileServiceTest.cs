@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using FluentAssertions;
+using Google.Protobuf.WellKnownTypes;
 using HCL.IdentityServer.API.BLL.gRPCServices;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Domain.Entities;
@@ -45,8 +46,8 @@ namespace HCL.IdentityServer.API.Test.Services
             var actualReply = await AthorPublicProfileServ.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
 
             //Assert
-            Assert.NotEmpty(accounts);
-            Assert.Equal(actualReply, expectedReply);
+            accounts.Should().NotBeEmpty();
+            actualReply.Should().Be(expectedReply);
         }
 
         [Fact]
@@ -76,9 +77,9 @@ namespace HCL.IdentityServer.API.Test.Services
             var actualReply = await AthorPublicProfileServ.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
 
             //Assert
-            Assert.Empty(accounts);
-            Assert.Equal(actualReply.Status, expectedReply.Status);
-            Assert.Equal(actualReply.Login, expectedReply.Login);
+            accounts.Should().NotBeEmpty();
+            actualReply.Status.Should().Be(expectedReply.Status);
+            actualReply.Login.Should().Be(expectedReply.Login);
         }
     }
 }

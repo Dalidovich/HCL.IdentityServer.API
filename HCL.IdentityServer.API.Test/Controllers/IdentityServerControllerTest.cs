@@ -1,4 +1,5 @@
-﻿using HCL.IdentityServer.API.BLL.Services;
+﻿using FluentAssertions;
+using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Controllers;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Entities;
@@ -35,9 +36,9 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var authDTO = createdResult.Value as AuthDTO;
 
-            Assert.NotEmpty(accounts);
-            Assert.Equal(accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Login, accountForRegistration.Login);
-            Assert.Equal(accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Id, authDTO.accountId);
+            accounts.Should().HaveCountGreaterThan(0);
+            accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Login.Should().Be(accountForRegistration.Login);
+            accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Id.Should().Be(authDTO.accountId);
         }
 
         [Fact]
@@ -63,9 +64,9 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var conflictObjectResult = await controller.Registration(accountForRegistration) as ConflictObjectResult;
 
             //Assert
-            Assert.NotEmpty(accounts);
-            Assert.NotNull(conflictObjectResult);
-            Assert.Single(accounts);
+            accounts.Should().HaveCountGreaterThan(0);
+            conflictObjectResult.Should().NotBeNull();
+            accounts.Should().ContainSingle();
         }
 
         [Fact]
@@ -91,11 +92,11 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var okObjectResult = await controller.Authenticate(accountForRegistration) as OkObjectResult;
 
             //Assert
-            Assert.NotNull(okObjectResult);
+            okObjectResult.Should().NotBeNull();
 
             var authDTO = okObjectResult.Value as AuthDTO;
 
-            Assert.Equal(accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Id, authDTO.accountId);
+            accounts.Where(x => x.Login == accountForRegistration.Login).SingleOrDefault().Id.Should().Be(authDTO.accountId);
         }
 
         [Fact]
@@ -130,8 +131,8 @@ namespace HCL.IdentityServer.API.Test.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                Assert.NotEmpty(accounts);
-                Assert.Single(accounts);
+                accounts.Should().NotBeNull();
+                accounts.Should().ContainSingle();
             }
             catch (Exception ex)
             {
@@ -162,8 +163,8 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var okObjectResult = await controller.Delete((Guid)accounts.First().Id) as OkObjectResult;
 
             //Assert
-            Assert.NotNull(okObjectResult);
-            Assert.Empty(accounts);
+            okObjectResult.Should().NotBeNull();
+            accounts.Should().BeEmpty();
         }
 
         [Fact]
@@ -182,8 +183,8 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var badRequestResult = await controller.Delete(Guid.NewGuid()) as BadRequestResult;
 
             //Assert
-            Assert.NotNull(badRequestResult);
-            Assert.Empty(accounts);
+            badRequestResult.Should().NotBeNull();
+            accounts.Should().BeEmpty();
         }
     }
 }
