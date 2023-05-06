@@ -178,12 +178,6 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var regServ = new RegistrationService(mockAccServ.Object, tokServ);
             var controller = new IdentityServerController(regServ, mockAccServ.Object);
 
-            var accountForRegistration = new AccountDTO()
-            {
-                Login = "Ilia",
-                Password = "123456",
-            };
-
             //Act
             var badRequestResult = await controller.Delete(Guid.NewGuid()) as BadRequestResult;
 
