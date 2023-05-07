@@ -25,10 +25,11 @@ namespace HCL.IdentityServer.API.Test.Services
                 }
             };
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
             var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
 
-            var AthorPublicProfileServ = new AthorPublicProfileService(mockAccServ.Object, mockRedisLockServ.Object);
+            var accServ = new AccountService(mockAccRep.Object);
+            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object);
 
             var req = new AthorIdRequest()
             {
@@ -56,10 +57,11 @@ namespace HCL.IdentityServer.API.Test.Services
             //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
             var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
 
-            var AthorPublicProfileServ = new AthorPublicProfileService(mockAccServ.Object, mockRedisLockServ.Object);
+            var accServ = new AccountService(mockAccRep.Object);
+            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object);
 
             var req = new AthorIdRequest()
             {
@@ -77,7 +79,7 @@ namespace HCL.IdentityServer.API.Test.Services
             var actualReply = await AthorPublicProfileServ.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
 
             //Assert
-            accounts.Should().NotBeEmpty();
+            accounts.Should().BeEmpty();
             actualReply.Status.Should().Be(expectedReply.Status);
             actualReply.Login.Should().Be(expectedReply.Login);
         }

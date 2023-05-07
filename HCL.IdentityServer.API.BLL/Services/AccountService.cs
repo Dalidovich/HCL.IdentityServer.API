@@ -68,17 +68,13 @@ namespace HCL.IdentityServer.API.BLL.Services
             };
         }
 
-        public async Task<BaseResponse<IEnumerable<Account>>> GetAllAccounts()
+        public async Task<BaseResponse<IEnumerable<Account>>> GetAccounts(Expression<Func<Account, bool>> expression)
         {
-            var contents = await _accountRepository.GetAll().ToListAsync();
-            if (contents == null)
-            {
-                throw new KeyNotFoundException("[GetAllAccounts]");
-            }
+            var entities = await _accountRepository.GetAll().Where(expression).ToListAsync();
 
             return new StandartResponse<IEnumerable<Account>>()
             {
-                Data = contents,
+                Data = entities,
                 StatusCode = StatusCode.AccountRead
             };
         }

@@ -1,4 +1,5 @@
 ﻿using HCL.IdentityServer.API.BLL.Services;
+using HCL.IdentityServer.API.Controllers;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
@@ -14,10 +15,11 @@ namespace HCL.IdentityServer.API.Test.Services
             //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
+            var accServ = new AccountService(mockAccRep.Object);
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
-            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -42,10 +44,11 @@ namespace HCL.IdentityServer.API.Test.Services
             //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
+            var accServ = new AccountService(mockAccRep.Object);
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
-            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -70,10 +73,11 @@ namespace HCL.IdentityServer.API.Test.Services
             //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
+            var accServ = new AccountService(mockAccRep.Object);
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
-            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -98,10 +102,11 @@ namespace HCL.IdentityServer.API.Test.Services
             //Arrange
             List<Account> accounts = new List<Account>();
 
-            var mockAccServ = StandartMockBuilder.CreateAccountServiceMock(accounts);
+            var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
+            var accServ = new AccountService(mockAccRep.Object);
             var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
-            var regServ = new RegistrationService(mockAccServ.Object, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
             {

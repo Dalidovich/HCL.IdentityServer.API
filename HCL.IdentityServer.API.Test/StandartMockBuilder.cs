@@ -5,7 +5,9 @@ using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.InnerResponse;
 using HCL.IdentityServer.API.Domain.JWT;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using MockQueryable.Moq;
 using Moq;
 using System.Linq.Expressions;
 
@@ -49,6 +51,7 @@ namespace HCL.IdentityServer.API.Test
         public static Mock<IAccountRepository> CreateAccountRepositoryMock(List<Account> accounts)
         {
             var accRep = new Mock<IAccountRepository>();
+            var collectionQuerybleMock = accounts.BuildMock();
             accRep
                 .Setup(r => r.AddAsync(It.IsAny<Account>()))
                 .ReturnsAsync((Account account) =>
@@ -75,6 +78,17 @@ namespace HCL.IdentityServer.API.Test
 
             accRep.Setup(r => r.SaveAsync());
 
+            accRep.Setup(r => r.GetAll())
+                .Returns(collectionQuerybleMock);
+
+
+            accRep.Setup(r => r.Delete(It.IsAny<Account>()))
+                .Returns((Account account) =>
+                {
+                    accounts.Remove(account);
+                    return true;
+                });
+
             return accRep;
         }
 
@@ -83,44 +97,6 @@ namespace HCL.IdentityServer.API.Test
             var serverCallContext = new Mock<ServerCallContext>();
 
             return serverCallContext;
-        }
-
-        public static Mock<IAccountService> CreateAccountServiceMock(List<Account> accounts)
-        {
-            var mockAccServ = new Mock<IAccountService>();
-            mockAccServ
-                .Setup(s => s.GetAccount(It.IsAny<Expression<Func<Account, bool>>>()))
-                .ReturnsAsync((Expression<Func<Account, bool>> expression) =>
-                {
-                    var account = accounts.Where(expression.Compile()).SingleOrDefault();
-                    if (account != null)
-                    {
-                        return new StandartResponse<Account>()
-                        {
-                            Data = account,
-                            StatusCode = Domain.Enums.StatusCode.AccountRead
-                        };
-                    }
-                    return new StandartResponse<Account>();
-                });
-
-            mockAccServ
-                .Setup(s => s.CreateAccount(It.IsAny<Account>()))
-                .ReturnsAsync((Account account) => new StandartResponse<Account>()
-                {
-                    Data = _addAccount(account, accounts),
-                    StatusCode = Domain.Enums.StatusCode.AccountRead
-                });
-
-            mockAccServ
-                .Setup(s => s.DeleteAccount(It.IsAny<Expression<Func<Account, bool>>>()))
-                .ReturnsAsync((Expression<Func<Account, bool>> expression) => new StandartResponse<bool>()
-                {
-                    Data = accounts.Remove(accounts.Where(expression.Compile()).SingleOrDefault()),
-                    StatusCode = Domain.Enums.StatusCode.AccountDelete
-                });
-
-            return mockAccServ;
         }
     }
 }
