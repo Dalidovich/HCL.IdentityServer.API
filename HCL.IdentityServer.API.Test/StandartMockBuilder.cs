@@ -3,13 +3,10 @@ using HCL.IdentityServer.API.BLL.gRPCServices;
 using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Entities;
-using HCL.IdentityServer.API.Domain.InnerResponse;
 using HCL.IdentityServer.API.Domain.JWT;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using MockQueryable.Moq;
 using Moq;
-using System.Linq.Expressions;
 
 namespace HCL.IdentityServer.API.Test
 {
