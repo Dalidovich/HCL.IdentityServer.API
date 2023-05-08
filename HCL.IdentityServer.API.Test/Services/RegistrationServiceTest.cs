@@ -18,7 +18,7 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
@@ -47,7 +47,7 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
@@ -76,7 +76,7 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()
@@ -105,7 +105,7 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
 
             var accountForRegistration = new AccountDTO()

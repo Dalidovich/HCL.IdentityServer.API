@@ -19,7 +19,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep=StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 
@@ -51,7 +51,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 
@@ -80,7 +80,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 
@@ -111,7 +111,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 
@@ -153,7 +153,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 
@@ -181,7 +181,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
             var accServ = new AccountService(mockAccRep.Object);
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             var regServ = new RegistrationService(accServ, tokServ);
             var controller = new IdentityServerController(regServ, accServ);
 

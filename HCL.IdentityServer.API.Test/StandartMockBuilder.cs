@@ -12,7 +12,7 @@ namespace HCL.IdentityServer.API.Test
 {
     public class StandartMockBuilder
     {
-        public static IOptions<JWTSettings> _jwtOpt = Options.Create(new JWTSettings()
+        public static readonly IOptions<JWTSettings> jwtOpt = Options.Create(new JWTSettings()
         {
             SecretKey = "jwts-learning-kjdfkjbfjbfj32242353jkdbgfkmfgk5445tjk5445ggfpogbg",
             Audience = "MyApiToken",

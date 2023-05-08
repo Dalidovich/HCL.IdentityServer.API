@@ -9,7 +9,7 @@ namespace HCL.IdentityServer.API.Test.Services
         public void RightСonsistencyPasswordHashAlgorithm_WithRightData_ReturnRightCoincidence()
         {
             //Arrange
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             string password = "123456";
 
             //Act
@@ -25,7 +25,7 @@ namespace HCL.IdentityServer.API.Test.Services
         public void RightСonsistencyPasswordHashAlgorithm_WithWrongData_ReturnRightCoincidence()
         {
             //Arrange
-            var tokServ = new TokenService(StandartMockBuilder._jwtOpt);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
             string password = "123456";
 
             //Act
