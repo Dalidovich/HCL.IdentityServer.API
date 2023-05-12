@@ -16,6 +16,7 @@ services:
     ports: 
       - "5001:5001"
     environment:
+      ElasticConfiguration__Uri: http://elasticsearch:9200
       GRPC-SERVER-PORT: 5001
       ConnectionStrings__NpgConnectionString: User Id=postgres; Password=pg; Server=app_db_hcl_identity; Port=5432; Database=HCL_IdentityServer; IntegratedSecurity=true; Pooling=true;
       RedisOption__Host: host.docker.internal:6379,password=redis

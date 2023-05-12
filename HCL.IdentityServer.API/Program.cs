@@ -16,6 +16,7 @@ namespace HCL.IdentityServer.API
             builder.AddServices();
             builder.AddJWT();
             builder.AddRedisPropperty();
+            builder.AddElasticserchProperty();
 
             builder.Services.AddDbContext<AppDBContext>(opt => opt.UseNpgsql(
                 builder.Configuration.GetConnectionString(StandartConst.NameConnection)));
