@@ -2,7 +2,6 @@
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
-using HCL.IdentityServer.API.Domain.InnerResponse;
 using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Services

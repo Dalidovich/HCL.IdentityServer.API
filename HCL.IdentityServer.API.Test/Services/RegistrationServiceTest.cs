@@ -1,5 +1,5 @@
-﻿using HCL.IdentityServer.API.BLL.Services;
-using HCL.IdentityServer.API.Controllers;
+﻿using FluentAssertions;
+using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
@@ -119,22 +119,12 @@ namespace HCL.IdentityServer.API.Test.Services
 
             accountForRegistration.Login = "Dima";
 
-            try
+            var result = async () =>
             {
-                await regServ.Authenticate(accountForRegistration);
+                await regServ.Registration(accountForRegistration);
+            };
 
-                //Assert
-                Assert.Fail("");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                Assert.NotEmpty(accounts);
-                Assert.Single(accounts);
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("");
-            }
+            result.Should().ThrowAsync<KeyNotFoundException>();
         }
     }
 }

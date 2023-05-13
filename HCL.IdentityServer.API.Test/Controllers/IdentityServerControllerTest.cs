@@ -1,12 +1,9 @@
-﻿using Castle.Core.Logging;
-using FluentAssertions;
+﻿using FluentAssertions;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Controllers;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
 using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Controllers
@@ -129,22 +126,12 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             accountForRegistration.Login = "Dima";
 
-            try
+            var result = async () =>
             {
                 await controller.Authenticate(accountForRegistration);
+            };
 
-                //Assert
-                Assert.Fail("");
-            }
-            catch (KeyNotFoundException ex)
-            {
-                accounts.Should().NotBeNull();
-                accounts.Should().ContainSingle();
-            }
-            catch (Exception ex)
-            {
-                Assert.Fail("");
-            }
+            result.Should().ThrowAsync<KeyNotFoundException>();
         }
 
         [Fact]
