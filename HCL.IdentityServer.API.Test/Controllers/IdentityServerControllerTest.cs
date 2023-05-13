@@ -1,9 +1,12 @@
-﻿using FluentAssertions;
+﻿using Castle.Core.Logging;
+using FluentAssertions;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Controllers;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Controllers
@@ -18,10 +21,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep=StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -50,10 +53,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -79,10 +82,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -110,10 +113,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -152,10 +155,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -165,10 +168,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             //Act
             await controller.Registration(accountForRegistration);
-            var okObjectResult = await controller.Delete((Guid)accounts.First().Id) as OkObjectResult;
+            var noContentResult = await controller.Delete((Guid)accounts.First().Id) as NoContentResult;
 
             //Assert
-            okObjectResult.Should().NotBeNull();
+            noContentResult.Should().NotBeNull();
             accounts.Should().BeEmpty();
         }
 
@@ -180,10 +183,10 @@ namespace HCL.IdentityServer.API.Test.Controllers
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
-            var controller = new IdentityServerController(regServ, accServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
+            var controller = new IdentityServerController(regServ, accServ, StandartMockBuilder.mockLoggerController);
 
             //Act
             var badRequestResult = await controller.Delete(Guid.NewGuid()) as BadRequestResult;

@@ -1,9 +1,12 @@
 ﻿using Grpc.Core;
 using HCL.IdentityServer.API.BLL.gRPCServices;
 using HCL.IdentityServer.API.BLL.Interfaces;
+using HCL.IdentityServer.API.BLL.Services;
+using HCL.IdentityServer.API.Controllers;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.JWT;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MockQueryable.Moq;
 using Moq;
@@ -18,6 +21,11 @@ namespace HCL.IdentityServer.API.Test
             Audience = "MyApiToken",
             Issuer = "MyClient",
         });
+
+        public static readonly ILogger<AccountService> mockLoggerAccServ = new Mock<ILogger<AccountService>>().Object;
+        public static readonly ILogger<IdentityServerController> mockLoggerController = new Mock<ILogger<IdentityServerController>>().Object;
+        public static readonly ILogger<RegistrationService> mockLoggerRegServ = new Mock<ILogger<RegistrationService>>().Object;
+        public static readonly ILogger<AthorPublicProfileService> mockLoggerAthorPublServ = new Mock<ILogger<AthorPublicProfileService>>().Object;
 
         private static Account _addAccount(Account account, List<Account> accounts)
         {

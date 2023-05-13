@@ -17,9 +17,9 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -46,9 +46,9 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -75,9 +75,9 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
 
             var accountForRegistration = new AccountDTO()
             {
@@ -104,9 +104,9 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
 
-            var accServ = new AccountService(mockAccRep.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
             var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accServ, tokServ);
+            var regServ = new RegistrationService(accServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
 
             var accountForRegistration = new AccountDTO()
             {

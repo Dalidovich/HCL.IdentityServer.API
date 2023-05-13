@@ -28,8 +28,8 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
             var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
 
-            var accServ = new AccountService(mockAccRep.Object);
-            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
+            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object, StandartMockBuilder.mockLoggerAthorPublServ);
 
             var req = new AthorIdRequest()
             {
@@ -60,8 +60,8 @@ namespace HCL.IdentityServer.API.Test.Services
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
             var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
 
-            var accServ = new AccountService(mockAccRep.Object);
-            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object);
+            var accServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
+            var AthorPublicProfileServ = new AthorPublicProfileService(accServ, mockRedisLockServ.Object, StandartMockBuilder.mockLoggerAthorPublServ);
 
             var req = new AthorIdRequest()
             {
