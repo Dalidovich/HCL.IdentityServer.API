@@ -20,4 +20,4 @@ jobs:
     - name: Build 
       run: dotnet build HCL.IdentityServer.API/HCL.IdentityServer.API.csproj
     - name: Test
-      run: dotnet test ./HCL.IdentityServer.API.sln
+      run: dotnet test ./HCL.IdentityServer.API.sln --verbosity normal
