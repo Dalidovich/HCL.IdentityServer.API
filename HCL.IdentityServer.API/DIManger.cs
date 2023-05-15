@@ -1,4 +1,5 @@
-﻿using HCL.IdentityServer.API.BLL.Interfaces;
+﻿using HCL.CommentServer.API;
+using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.DAL.Repositories.Interfaces;
@@ -7,6 +8,7 @@ using HCL.IdentityServer.API.HostedService;
 using HCL.IdentityServer.API.Midlaware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 namespace HCL.IdentityServer.API
@@ -16,6 +18,12 @@ namespace HCL.IdentityServer.API
         public static void AddRepositores(this WebApplicationBuilder webApplicationBuilder)
         {
             webApplicationBuilder.Services.AddScoped<IAccountRepository, AccountRepository>();
+        }
+
+        public static void AddElasticserchProperty(this WebApplicationBuilder webApplicationBuilder)
+        {
+            ElasticsearchHelper.ConfigureLogging();
+            webApplicationBuilder.Host.UseSerilog();
         }
 
         public static void AddServices(this WebApplicationBuilder webApplicationBuilder)
