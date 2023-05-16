@@ -22,6 +22,7 @@ RUN dotnet publish "HCL.IdentityServer.API.csproj" -c Release -o /app/publish /p
 RUN dotnet dev-certs https --trust
 
 FROM base AS final
+ENV ConnectionStrings__NpgConnectionString="User Id=postgres; Password=intership; Server=35.203.119.3; Port=5432; Database=HCL_IdentityServer; IntegratedSecurity=true; Pooling=true;"
 WORKDIR /app
 COPY --from=publish /app/publish .
 COPY --from=publish /root/.dotnet/corefx/cryptography/x509stores/my/* /root/.dotnet/corefx/cryptography/x509stores/my/
