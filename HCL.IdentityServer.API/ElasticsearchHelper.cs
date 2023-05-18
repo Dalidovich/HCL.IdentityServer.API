@@ -2,7 +2,7 @@
 using Serilog.Sinks.Elasticsearch;
 using System.Reflection;
 
-namespace HCL.CommentServer.API
+namespace HCL.IdentityServer.API
 {
     public static class ElasticsearchHelper
     {

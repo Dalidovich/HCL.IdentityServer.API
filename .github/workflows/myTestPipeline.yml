@@ -1,0 +1,23 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "Deveolper" ]
+  pull_request:
+    branches: [ "Deveolper" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+    - name: Build 
+      run: dotnet build HCL.IdentityServer.API/HCL.IdentityServer.API.csproj
+    - name: Test
+      run: dotnet test ./HCL.IdentityServer.API.sln --verbosity normal

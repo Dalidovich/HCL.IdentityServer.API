@@ -2,7 +2,6 @@
 using HCL.IdentityServer.API.BLL.Services;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
-using HCL.IdentityServer.API.Domain.InnerResponse;
 using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Services
@@ -16,7 +15,7 @@ namespace HCL.IdentityServer.API.Test.Services
             List<Account> accounts = new List<Account>();
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             var newAccount = new Account()
             {
@@ -56,7 +55,7 @@ namespace HCL.IdentityServer.API.Test.Services
             };
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             var newAccount = new Account()
             {
@@ -86,7 +85,7 @@ namespace HCL.IdentityServer.API.Test.Services
             List<Account> accounts = new List<Account>();
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             var newAccount = new Account()
             {
@@ -116,7 +115,7 @@ namespace HCL.IdentityServer.API.Test.Services
             };
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
             var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima");
@@ -134,7 +133,7 @@ namespace HCL.IdentityServer.API.Test.Services
             List<Account> accounts = new List<Account>();
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
             var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima");
@@ -165,10 +164,10 @@ namespace HCL.IdentityServer.API.Test.Services
             };
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccount(x=>x.Login=="Ilia");
+            var account = await accountServ.GetAccount(x => x.Login == "Ilia");
 
             //Assert
             account.Should().NotBeNull();
@@ -184,7 +183,7 @@ namespace HCL.IdentityServer.API.Test.Services
             List<Account> accounts = new List<Account>();
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
             var account = await accountServ.GetAccount(x => x.Login == "Ilia");
@@ -220,7 +219,7 @@ namespace HCL.IdentityServer.API.Test.Services
             };
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
             var account = await accountServ.GetAccounts(x => x.StatusAccount == StatusAccount.normal);
@@ -239,7 +238,7 @@ namespace HCL.IdentityServer.API.Test.Services
             List<Account> accounts = new List<Account>();
 
             var mockAccRep = StandartMockBuilder.CreateAccountRepositoryMock(accounts);
-            var accountServ = new AccountService(mockAccRep.Object);
+            var accountServ = new AccountService(mockAccRep.Object, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
             var account = await accountServ.GetAccounts(x => x.Login == "Ilia");
