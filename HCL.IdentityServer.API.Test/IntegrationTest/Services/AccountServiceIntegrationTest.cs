@@ -129,7 +129,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             //Assert
             result.Should().ThrowAsync<KeyNotFoundException>();
 
-
             await pgContainer.DisposeAsync();
         }
 
