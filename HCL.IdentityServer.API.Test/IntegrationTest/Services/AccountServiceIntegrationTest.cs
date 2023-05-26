@@ -96,7 +96,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         }
 
         [Fact]
-        public async Task UpdateAccount_WithNotExistAccount_ReturnUpdatedAccount()
+        public async Task UpdateAccount_WithNotExistAccount_ReturnError()
         {
             //Arrange
             IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
