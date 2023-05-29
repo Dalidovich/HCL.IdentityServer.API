@@ -41,7 +41,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest
                     var scopedServices = scope.ServiceProvider;
                     var context = scopedServices.GetRequiredService<AppDBContext>();
                     context.Database.EnsureDeleted();
-                    context.Database.EnsureCreated();
+                    context.Database.Migrate();
                 });
             });
         }
