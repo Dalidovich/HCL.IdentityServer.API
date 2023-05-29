@@ -11,14 +11,24 @@ using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Services
 {
-    public class RegistrationServiceIntegrationTest
+    public class RegistrationServiceIntegrationTest : IAsyncLifetime
     {
+        IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+
+        public async Task InitializeAsync()
+        {
+            await pgContainer.StartAsync();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await pgContainer.StopAsync();
+        }
+
         [Fact]
         public async Task Registration_WithRightAuthData_ReturnNewAccount()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -31,7 +41,7 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia",
+                Login = "Ilia1",
                 Password = "123456",
             };
 
@@ -42,16 +52,12 @@ namespace HCL.IdentityServer.API.Test.Services
             authDTO.Should().NotBeNull();
             authDTO.Data.Should().NotBeNull();
             authDTO.StatusCode.Should().Be(StatusCode.AccountCreate);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task Registration_WithAlredyExistAccount_ReturnExistStatusCode()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -64,7 +70,7 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia",
+                Login = "Ilia2",
                 Password = "123456",
             };
 
@@ -75,8 +81,6 @@ namespace HCL.IdentityServer.API.Test.Services
             //Assert
             authDTO.Should().NotBeNull();
             authDTO.StatusCode.Should().Be(StatusCode.AccountExist);
-
-            await pgContainer.DisposeAsync();
         }
 
 
@@ -84,8 +88,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task AuntificationAccount_WithRightAuthData_ReturnAuthenticateStatusCode()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -98,7 +100,7 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia",
+                Login = "Ilia3",
                 Password = "123456",
             };
 
@@ -115,8 +117,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -129,23 +129,21 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia",
+                Login = "Ilia4",
                 Password = "123456",
             };
 
             //Act
             await regServ.Registration(accountForRegistration);
 
-            accountForRegistration.Login = "Dima";
+            accountForRegistration.Login = "Dima4";
 
             var result = async () =>
             {
-                await regServ.Registration(accountForRegistration);
+                await regServ.Authenticate(accountForRegistration);
             };
 
-            result.Should().ThrowAsync<KeyNotFoundException>();
-
-            await pgContainer.DisposeAsync();
+            await result.Should().ThrowAsync<KeyNotFoundException>();
         }
     }
 }

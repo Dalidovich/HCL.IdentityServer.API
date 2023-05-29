@@ -17,6 +17,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest
                 .WithImage("postgres:latest")
                 .WithHostname(Guid.NewGuid().ToString("N"))
                 .WithExposedPort(5433)
+                .WithAutoRemove(true)
                 .WithPortBinding(5432, true)
                 .WithEnvironment("POSTGRES_USER", npgsqlUser)
                 .WithEnvironment("POSTGRES_PASSWORD", npgsqlPassword)

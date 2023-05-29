@@ -13,8 +13,20 @@ using Xunit;
 
 namespace HCL.IdentityServer.API.Test.Services
 {
-    public class AthorPublicProfileServiceIntegrationTest
+    public class AthorPublicProfileServiceIntegrationTest : IAsyncLifetime
     {
+        IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+
+        public async Task InitializeAsync()
+        {
+            await pgContainer.StartAsync();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await pgContainer.StopAsync();
+        }
+
         [Fact]
         public async Task GetProfile_WithExistAccount_ReturnProfile()
         {
@@ -24,7 +36,7 @@ namespace HCL.IdentityServer.API.Test.Services
                 new Account()
                 {
                     Id=Guid.NewGuid(),
-                    Login="Ilia",
+                    Login="Ilia1",
                     CreateDate=DateTime.MaxValue,
                     StatusAccount=StatusAccount.normal,
                     Password="password",
@@ -32,8 +44,6 @@ namespace HCL.IdentityServer.API.Test.Services
                     Salt="salt"
                 }
             };
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
 
@@ -64,16 +74,12 @@ namespace HCL.IdentityServer.API.Test.Services
             //Assert
             accounts.Should().NotBeEmpty();
             actualReply.Should().Be(expectedReply);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task GetProfile_WithNotExistAccount_ReturnDefaultProfile()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -104,8 +110,6 @@ namespace HCL.IdentityServer.API.Test.Services
             //Assert
             actualReply.Status.Should().Be(expectedReply.Status);
             actualReply.Login.Should().Be(expectedReply.Login);
-
-            await pgContainer.DisposeAsync();
         }
     }
 }

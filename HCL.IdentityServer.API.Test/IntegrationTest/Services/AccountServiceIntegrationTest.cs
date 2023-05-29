@@ -5,19 +5,30 @@ using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
 {
-    public class AccountServiceIntegrationTest
+    public class AccountServiceIntegrationTest : IAsyncLifetime
     {
+        IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+
+        public async Task InitializeAsync()
+        {
+            await pgContainer.StartAsync();
+        }
+
+        public async Task DisposeAsync()
+        {
+            await pgContainer.StopAsync();
+        }
+
         [Fact]
         public async Task AddAccount_WithRightData_ReturnNewAccount()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -28,7 +39,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
 
             var newAccount = new Account()
             {
-                Login = "Ilia",
+                Login = "Ilia1",
                 Salt = "salt",
                 Password = "password",
                 StatusAccount = StatusAccount.normal,
@@ -42,8 +53,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             //Assert
             addedAccount.Data.Login.Should().Be(newAccount.Login);
             addedAccount.StatusCode.Should().Be(StatusCode.AccountCreate);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
@@ -55,7 +64,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id=Guid.NewGuid(),
-                    Login = "Ilia",
+                    Login = "Ilia2",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -63,8 +72,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
 
@@ -73,17 +80,8 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accRep = new AccountRepository(appDBContext);
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
-            var newAccount = new Account()
-            {
-                Id = accounts.First().Id,
-                Login = accounts.First().Login,
-                Salt = accounts.First().Salt,
-                Password = accounts.First().Password,
-                StatusAccount = accounts.First().StatusAccount,
-                Role = accounts.First().Role,
-                CreateDate = accounts.First().CreateDate,
-            };
-            newAccount.Login = "Dima";
+            var newAccount = await accRep.GetAll().Where(a => a.Id == accounts.First().Id).SingleOrDefaultAsync();
+            newAccount.Login = "Dima2";
 
             //Act
             var addedAccount = await accountServ.UpdateAccount(newAccount);
@@ -91,16 +89,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             //Assert
             addedAccount.StatusCode.Should().Be(StatusCode.AccountUpdate);
             addedAccount.Data.Login.Should().Be(newAccount.Login);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task UpdateAccount_WithNotExistAccount_ReturnError()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -112,7 +106,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var newAccount = new Account()
             {
                 Id = Guid.NewGuid(),
-                Login = "Dima",
+                Login = "Dima3",
                 Salt = "salt",
                 Password = "password",
                 StatusAccount = StatusAccount.normal,
@@ -127,9 +121,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Assert
-            result.Should().ThrowAsync<KeyNotFoundException>();
-
-            await pgContainer.DisposeAsync();
+            await result.Should().ThrowAsync<DbUpdateConcurrencyException>();
         }
 
         [Fact]
@@ -141,7 +133,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima",
+                    Login = "Dima4",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -149,9 +141,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
 
@@ -161,21 +150,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima");
+            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima4");
 
             //Assert
             deleteConfirm.Data.Should().BeTrue();
             deleteConfirm.StatusCode.Should().Be(StatusCode.AccountDelete);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task DeleteAccount_WithNotExistAccount_ReturnBooleantFalse()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -185,13 +170,11 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima");
+            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "DimanotExist");
 
             //Assert
             deleteConfirm.Data.Should().BeFalse();
             deleteConfirm.StatusCode.Should().Be(StatusCode.EntityNotFound);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
@@ -203,7 +186,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima",
+                    Login = "Dima6",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -213,7 +196,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Ilia",
+                    Login = "Ilia6",
                     StatusAccount=StatusAccount.deleted,
                     Salt = "salt",
                     Password = "password",
@@ -221,8 +204,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
 
@@ -232,23 +213,19 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccount(x => x.Login == "Ilia");
+            var account = await accountServ.GetAccount(x => x.Login == "Ilia6");
 
             //Assert
             account.Should().NotBeNull();
             account.StatusCode.Should().Be(StatusCode.AccountRead);
             account.Data.Should().NotBeNull();
             account.Data.StatusAccount.Should().Be(StatusAccount.deleted);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task GetAccount_WithNotExistAccount_ReturnAccount()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -258,14 +235,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccount(x => x.Login == "Ilia");
+            var account = await accountServ.GetAccount(x => x.Login == "IliaNotExist");
 
             //Assert
             account.Should().NotBeNull();
             account.StatusCode.Should().Be(StatusCode.EntityNotFound);
             account.Data.Should().BeNull();
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
@@ -277,7 +252,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima",
+                    Login = "Dima8",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -287,7 +262,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Max",
+                    Login = "Max8",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -297,7 +272,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Ilia",
+                    Login = "Ilia8",
                     Salt = "salt",
                     Password = "password",
                     Role = Role.standart,
@@ -305,8 +280,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     StatusAccount=StatusAccount.deleted
                 }
             };
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
 
@@ -323,16 +296,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             account.StatusCode.Should().Be(StatusCode.AccountRead);
             account.Data.Should().NotBeNull();
             account.Data.Count().Should().Be(2);
-
-            await pgContainer.DisposeAsync();
         }
 
         [Fact]
         public async Task GetAccounts_WithNotExistAccount_ReturnAccounts()
         {
             //Arrange
-            IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-            await pgContainer.StartAsync();
             var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
 
@@ -342,14 +311,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccounts(x => x.Login == "Ilia");
+            var account = await accountServ.GetAccounts(x => x.Login == "IliaNotExist");
 
             //Assert
             account.Should().NotBeNull();
             account.Data.Should().NotBeNull();
             account.Data.Should().BeEmpty();
-
-            await pgContainer.DisposeAsync();
         }
     }
 }
