@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HCL.IdentityServer.API.Test.Services
+namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
 {
     public class RegistrationServiceIntegrationTest : IAsyncLifetime
     {
