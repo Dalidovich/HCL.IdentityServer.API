@@ -6,6 +6,7 @@ using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.Domain.DTO;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Test.IntegrationTest;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -14,10 +15,13 @@ namespace HCL.IdentityServer.API.Test.Services
     public class RegistrationServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+        private WebApplicationFactory<Program> webHost;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
+            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
         }
 
         public async Task DisposeAsync()
@@ -29,9 +33,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task Registration_WithRightAuthData_ReturnNewAccount()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -58,9 +59,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task Registration_WithAlredyExistAccount_ReturnExistStatusCode()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -88,9 +86,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task AuntificationAccount_WithRightAuthData_ReturnAuthenticateStatusCode()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -117,9 +112,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);

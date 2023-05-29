@@ -5,6 +5,7 @@ using HCL.IdentityServer.API.DAL;
 using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -14,10 +15,13 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
     public class AccountServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+        private WebApplicationFactory<Program> webHost;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
+            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
         }
 
         public async Task DisposeAsync()
@@ -29,9 +33,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task AddAccount_WithRightData_ReturnNewAccount()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -39,7 +40,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
 
             var newAccount = new Account()
             {
-                Login = "Ilia1",
+                Login = "IliaAS1",
                 Salt = "salt",
                 Password = "password",
                 StatusAccount = StatusAccount.normal,
@@ -64,7 +65,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id=Guid.NewGuid(),
-                    Login = "Ilia2",
+                    Login = "IliaAS2",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -72,16 +73,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
+
+            accounts.ForEach(async x => await accRep.AddAsync(x));
+            await accRep.SaveAsync();
+
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             var newAccount = await accRep.GetAll().Where(a => a.Id == accounts.First().Id).SingleOrDefaultAsync();
-            newAccount.Login = "Dima2";
+            newAccount.Login = "DimaAS2";
 
             //Act
             var addedAccount = await accountServ.UpdateAccount(newAccount);
@@ -95,9 +97,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task UpdateAccount_WithNotExistAccount_ReturnError()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -106,7 +105,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             var newAccount = new Account()
             {
                 Id = Guid.NewGuid(),
-                Login = "Dima3",
+                Login = "DimaAS3",
                 Salt = "salt",
                 Password = "password",
                 StatusAccount = StatusAccount.normal,
@@ -133,7 +132,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima4",
+                    Login = "DimaAS4",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -141,16 +140,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
+
+            accounts.ForEach(async x => await accRep.AddAsync(x));
+            await accRep.SaveAsync();
+
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "Dima4");
+            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == accounts.First().Login);
 
             //Assert
             deleteConfirm.Data.Should().BeTrue();
@@ -161,16 +161,13 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task DeleteAccount_WithNotExistAccount_ReturnBooleantFalse()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "DimanotExist");
+            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "DimaNotExist");
 
             //Assert
             deleteConfirm.Data.Should().BeFalse();
@@ -186,7 +183,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima6",
+                    Login = "DimaAS6",
                     Salt = "salt",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
@@ -196,7 +193,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Ilia6",
+                    Login = "IliaAS6",
                     StatusAccount=StatusAccount.deleted,
                     Salt = "salt",
                     Password = "password",
@@ -204,16 +201,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
+
+            accounts.ForEach(async x => await accRep.AddAsync(x));
+            await accRep.SaveAsync();
+
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccount(x => x.Login == "Ilia6");
+            var account = await accountServ.GetAccount(x => x.Login == "IliaAS6");
 
             //Assert
             account.Should().NotBeNull();
@@ -226,9 +224,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task GetAccount_WithNotExistAccount_ReturnAccount()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
@@ -252,8 +247,8 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Dima8",
-                    Salt = "salt",
+                    Login = "DimaAS8",
+                    Salt = "salt2",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
                     Role = Role.standart,
@@ -262,8 +257,8 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                 new Account()
                 {
                     Id = Guid.NewGuid(),
-                    Login = "Max8",
-                    Salt = "salt",
+                    Login = "MaxAS8",
+                    Salt = "salt2",
                     Password = "password",
                     StatusAccount = StatusAccount.normal,
                     Role = Role.standart,
@@ -280,16 +275,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     StatusAccount=StatusAccount.deleted
                 }
             };
-            var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
+
+            accounts.ForEach(async x => await accRep.AddAsync(x));
+            await accRep.SaveAsync();
+
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccounts(x => x.StatusAccount == StatusAccount.normal);
+            var account = await accountServ.GetAccounts(x => x.Salt == "salt2");
 
             //Assert
             account.Should().NotBeNull();
@@ -302,9 +298,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task GetAccounts_WithNotExistAccount_ReturnAccounts()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);

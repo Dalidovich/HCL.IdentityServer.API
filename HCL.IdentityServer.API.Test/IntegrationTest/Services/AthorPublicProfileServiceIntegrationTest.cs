@@ -8,6 +8,8 @@ using HCL.IdentityServer.API.DAL.Repositories;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Test.IntegrationTest;
+using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -16,10 +18,13 @@ namespace HCL.IdentityServer.API.Test.Services
     public class AthorPublicProfileServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+        private WebApplicationFactory<Program> webHost;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
+            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
         }
 
         public async Task DisposeAsync()
@@ -44,12 +49,13 @@ namespace HCL.IdentityServer.API.Test.Services
                     Salt="salt"
                 }
             };
-            var webHost = CustomTestHostBuilder.BuildWithAccounts(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB, accounts);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);
+
+            accounts.ForEach(async x => await accRep.AddAsync(x));
+            await accRep.SaveAsync();
+
             var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
@@ -80,9 +86,6 @@ namespace HCL.IdentityServer.API.Test.Services
         public async Task GetProfile_WithNotExistAccount_ReturnDefaultProfile()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-
             using var scope = webHost.Services.CreateScope();
             var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
             var accRep = new AccountRepository(appDBContext);

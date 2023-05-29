@@ -1,6 +1,7 @@
 ﻿using DotNet.Testcontainers.Containers;
 using FluentAssertions;
 using HCL.IdentityServer.API.Domain.DTO;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -8,11 +9,17 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
 {
     public class IdentityServerControllerIntegrationTest:IAsyncLifetime
     {
-        IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+        private IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
+        private WebApplicationFactory<Program> webHost;
+        private HttpClient client;
+
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
+            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
+            client = webHost.CreateClient();
         }
 
         public async Task DisposeAsync()
@@ -24,13 +31,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task Registration_WithRightAuthData_ReturnCreatedResult()
         {
             //Arrange
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
-
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia1",
+                Login = "IliaC1",
                 Password = "123456",
             };
 
@@ -45,12 +48,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task Registration_WithAlredyExistAccount_ReturnConflictObjectResult()
         {
             //Arrange            
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia2",
+                Login = "IliaC2",
                 Password = "123456",
             };
 
@@ -69,12 +69,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task AuntificationAccount_WithRightAuthData_ReturnOkObjectResult()
         {
             //Arrange            
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia3",
+                Login = "IliaC3",
                 Password = "123456",
             };
 
@@ -93,19 +90,16 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
             //Arrange            
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia4",
+                Login = "IliaC4",
                 Password = "123456",
             };
 
             //Act
             HttpResponseMessage createdFirstResult = await client.PostAsync($"api/IdentityServer/v1/Registration" +
                 $"?Login={accountForRegistration.Login}&Password={accountForRegistration.Password}", null);
-            accountForRegistration.Login = "Dima";
+            accountForRegistration.Login = "DimaC";
             HttpResponseMessage authenticateResult = await client.PostAsync($"api/IdentityServer/v1/authenticate" +
                 $"?Login={accountForRegistration.Login}&Password={accountForRegistration.Password}", null);
 
@@ -118,12 +112,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task DeleteAccount_WithoutAuth_ReturnOkTrueBoolean()
         {
             //Arrange            
-            var webHost = CustomTestHostBuilder.Build(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
             var accountForRegistration = new AccountDTO()
             {
-                Login = "Ilia5",
+                Login = "IliaC5",
                 Password = "123456",
             };
 
@@ -141,25 +132,32 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         [Fact]
         public async Task DeleteAccount_WithAuthAndExistAccount_ReturnOkTrueBoolean()
         {
-            //Arrange          
-            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
-            var accountForRegistration = new AccountDTO()
+            //Arrange           
+            var accountForAuth = new AccountDTO()
             {
                 Login = "admin",
                 Password = "admin",
             };
+            var accountForRegistration = new AccountDTO()
+            {
+                Login = "DimaC6",
+                Password = "admin",
+            };
 
-            //Act
+            HttpResponseMessage createdFirstResult = await client.PostAsync($"api/IdentityServer/v1/Registration" +
+                $"?Login={accountForRegistration.Login}&Password={accountForRegistration.Password}", null);
+
             HttpResponseMessage authenticateFirstResult = await client.PostAsync($"api/IdentityServer/v1/authenticate" +
-                 $"?Login={accountForRegistration.Login}&Password={accountForRegistration.Password}", null);
+                 $"?Login={accountForAuth.Login}&Password={accountForAuth.Password}", null);
             AuthDTO authDTO = JsonConvert.DeserializeObject<AuthDTO>((await authenticateFirstResult.Content.ReadAsStringAsync()));
+
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authDTO.JWTToken);
 
+            //Act
             HttpResponseMessage deleteResult = await client.DeleteAsync($"api/IdentityServer/v1/account?id={authDTO.accountId}");
 
             //Assert
+            createdFirstResult.StatusCode.Should().Be(System.Net.HttpStatusCode.Created);
             authenticateFirstResult.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
             deleteResult.StatusCode.Should().Be(System.Net.HttpStatusCode.NoContent);
         }
@@ -168,10 +166,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
         public async Task DeleteAccount_WithAuthAndNotExistAccount_ReturnOkTrueBoolean()
         {
             //Arrange          
-            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
-                , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
-            var client = webHost.CreateClient();
-            var accountForRegistration = new AccountDTO()
+            var accountForAuth = new AccountDTO()
             {
                 Login = "admin",
                 Password = "admin",
@@ -179,7 +174,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Controllers
 
             //Act
             HttpResponseMessage authenticateFirstResult = await client.PostAsync($"api/IdentityServer/v1/authenticate" +
-                 $"?Login={accountForRegistration.Login}&Password={accountForRegistration.Password}", null);
+                 $"?Login={accountForAuth.Login}&Password={accountForAuth.Password}", null);
             AuthDTO authDTO = JsonConvert.DeserializeObject<AuthDTO>((await authenticateFirstResult.Content.ReadAsStringAsync()));
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + authDTO.JWTToken);
 
