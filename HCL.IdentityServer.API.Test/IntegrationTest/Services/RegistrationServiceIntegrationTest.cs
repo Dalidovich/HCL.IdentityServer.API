@@ -15,13 +15,21 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
     public class RegistrationServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-        private WebApplicationFactory<Program> webHost;
+        private RegistrationService registrationService;
+        private AccountRepository accountRepository;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
-            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
+
+            var scope = webHost.Services.CreateScope();
+            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
+            accountRepository = new AccountRepository(appDBContext);
+            var accountServ = new AccountService(accountRepository, StandartMockBuilder.mockLoggerAccServ);
+            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
+            registrationService = new RegistrationService(accountServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
         }
 
         public async Task DisposeAsync()
@@ -33,13 +41,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task Registration_WithRightAuthData_ReturnNewAccount()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accountServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
-
             var accountForRegistration = new AccountDTO()
             {
                 Login = "Ilia1",
@@ -47,7 +48,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            var authDTO = await regServ.Registration(accountForRegistration);
+            var authDTO = await registrationService.Registration(accountForRegistration);
 
             //Assert
             authDTO.Should().NotBeNull();
@@ -59,13 +60,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task Registration_WithAlredyExistAccount_ReturnExistStatusCode()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accountServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
-
             var accountForRegistration = new AccountDTO()
             {
                 Login = "Ilia2",
@@ -73,8 +67,8 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            await regServ.Registration(accountForRegistration);
-            var authDTO = await regServ.Registration(accountForRegistration);
+            await registrationService.Registration(accountForRegistration);
+            var authDTO = await registrationService.Registration(accountForRegistration);
 
             //Assert
             authDTO.Should().NotBeNull();
@@ -86,13 +80,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task AuntificationAccount_WithRightAuthData_ReturnAuthenticateStatusCode()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accountServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
-
             var accountForRegistration = new AccountDTO()
             {
                 Login = "Ilia3",
@@ -100,8 +87,8 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            await regServ.Registration(accountForRegistration);
-            var authDTO = await regServ.Authenticate(accountForRegistration);
+            await registrationService.Registration(accountForRegistration);
+            var authDTO = await registrationService.Authenticate(accountForRegistration);
 
             //Assert
             authDTO.Should().NotBeNull();
@@ -112,13 +99,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task AuntificationAccount_WithWrongAuthData_ReturnKeyNotFoundException()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-            var tokServ = new TokenService(StandartMockBuilder.jwtOpt);
-            var regServ = new RegistrationService(accountServ, tokServ, StandartMockBuilder.mockLoggerRegServ);
-
             var accountForRegistration = new AccountDTO()
             {
                 Login = "Ilia4",
@@ -126,13 +106,13 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            await regServ.Registration(accountForRegistration);
+            await registrationService.Registration(accountForRegistration);
 
             accountForRegistration.Login = "Dima4";
 
             var result = async () =>
             {
-                await regServ.Authenticate(accountForRegistration);
+                await registrationService.Authenticate(accountForRegistration);
             };
 
             await result.Should().ThrowAsync<KeyNotFoundException>();

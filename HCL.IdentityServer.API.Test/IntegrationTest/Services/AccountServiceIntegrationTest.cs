@@ -15,13 +15,19 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
     public class AccountServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-        private WebApplicationFactory<Program> webHost;
+        private AccountRepository accountRepository;
+        private AccountService accountService;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
-            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
+
+            var scope = webHost.Services.CreateScope();
+            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
+            accountRepository = new AccountRepository(appDBContext);
+            accountService = new AccountService(accountRepository, StandartMockBuilder.mockLoggerAccServ);
         }
 
         public async Task DisposeAsync()
@@ -33,11 +39,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task AddAccount_WithRightData_ReturnNewAccount()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-
             var newAccount = new Account()
             {
                 Login = "IliaAS1",
@@ -49,7 +50,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            var addedAccount = await accountServ.CreateAccount(newAccount);
+            var addedAccount = await accountService.CreateAccount(newAccount);
 
             //Assert
             addedAccount.Data.Login.Should().Be(newAccount.Login);
@@ -73,20 +74,15 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
 
-            accounts.ForEach(async x => await accRep.AddAsync(x));
-            await accRep.SaveAsync();
+            accounts.ForEach(async x => await accountRepository.AddAsync(x));
+            await accountRepository.SaveAsync();
 
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-
-            var newAccount = await accRep.GetAll().Where(a => a.Id == accounts.First().Id).SingleOrDefaultAsync();
+            var newAccount = await accountRepository.GetAll().Where(a => a.Id == accounts.First().Id).SingleOrDefaultAsync();
             newAccount.Login = "DimaAS2";
 
             //Act
-            var addedAccount = await accountServ.UpdateAccount(newAccount);
+            var addedAccount = await accountService.UpdateAccount(newAccount);
 
             //Assert
             addedAccount.StatusCode.Should().Be(StatusCode.AccountUpdate);
@@ -97,11 +93,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task UpdateAccount_WithNotExistAccount_ReturnError()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-
             var newAccount = new Account()
             {
                 Id = Guid.NewGuid(),
@@ -116,7 +107,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             //Act
             var result = async () =>
             {
-                var addedAccount = await accountServ.UpdateAccount(newAccount);
+                var addedAccount = await accountService.UpdateAccount(newAccount);
             };
 
             //Assert
@@ -140,17 +131,14 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
 
-            accounts.ForEach(async x => await accRep.AddAsync(x));
-            await accRep.SaveAsync();
+            accounts.ForEach(async x => await accountRepository.AddAsync(x));
+            await accountRepository.SaveAsync();
 
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
+            var accountServ = new AccountService(accountRepository, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == accounts.First().Login);
+            var deleteConfirm = await accountService.DeleteAccount(x => x.Login == accounts.First().Login);
 
             //Assert
             deleteConfirm.Data.Should().BeTrue();
@@ -161,13 +149,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task DeleteAccount_WithNotExistAccount_ReturnBooleantFalse()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var deleteConfirm = await accountServ.DeleteAccount(x => x.Login == "DimaNotExist");
+            var deleteConfirm = await accountService.DeleteAccount(x => x.Login == "DimaNotExist");
 
             //Assert
             deleteConfirm.Data.Should().BeFalse();
@@ -201,17 +185,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     CreateDate = DateTime.Now,
                 }
             };
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
 
-            accounts.ForEach(async x => await accRep.AddAsync(x));
-            await accRep.SaveAsync();
-
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
+            accounts.ForEach(async x => await accountRepository.AddAsync(x));
+            await accountRepository.SaveAsync();
 
             //Act
-            var account = await accountServ.GetAccount(x => x.Login == "IliaAS6");
+            var account = await accountService.GetAccount(x => x.Login == "IliaAS6");
 
             //Assert
             account.Should().NotBeNull();
@@ -224,13 +203,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task GetAccount_WithNotExistAccount_ReturnAccount()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccount(x => x.Login == "IliaNotExist");
+            var account = await accountService.GetAccount(x => x.Login == "IliaNotExist");
 
             //Assert
             account.Should().NotBeNull();
@@ -275,17 +250,12 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     StatusAccount=StatusAccount.deleted
                 }
             };
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
 
-            accounts.ForEach(async x => await accRep.AddAsync(x));
-            await accRep.SaveAsync();
-
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
+            accounts.ForEach(async x => await accountRepository.AddAsync(x));
+            await accountRepository.SaveAsync();
 
             //Act
-            var account = await accountServ.GetAccounts(x => x.Salt == "salt2");
+            var account = await accountService.GetAccounts(x => x.Salt == "salt2");
 
             //Assert
             account.Should().NotBeNull();
@@ -298,13 +268,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task GetAccounts_WithNotExistAccount_ReturnAccounts()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
 
             //Act
-            var account = await accountServ.GetAccounts(x => x.Login == "IliaNotExist");
+            var account = await accountService.GetAccounts(x => x.Login == "IliaNotExist");
 
             //Assert
             account.Should().NotBeNull();

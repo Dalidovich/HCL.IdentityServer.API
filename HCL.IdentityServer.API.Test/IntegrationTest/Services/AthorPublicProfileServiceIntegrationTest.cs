@@ -18,13 +18,22 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
     public class AthorPublicProfileServiceIntegrationTest : IAsyncLifetime
     {
         IContainer pgContainer = TestContainerBuilder.CreatePostgreSQLContainer();
-        private WebApplicationFactory<Program> webHost;
+        private AthorPublicProfileService publicProfileService;
+        private AccountRepository accountRepository;
 
         public async Task InitializeAsync()
         {
             await pgContainer.StartAsync();
-            webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
+            var webHost = CustomTestHostBuilder.BuildWithAdmin(TestContainerBuilder.npgsqlUser, TestContainerBuilder.npgsqlPassword
                 , "localhost", pgContainer.GetMappedPublicPort(5432), TestContainerBuilder.npgsqlDB);
+
+            var scope = webHost.Services.CreateScope();
+            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
+            accountRepository = new AccountRepository(appDBContext);
+            var accountService = new AccountService(accountRepository, StandartMockBuilder.mockLoggerAccServ);
+            var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
+            publicProfileService = new AthorPublicProfileService(accountService, mockRedisLockServ.Object, StandartMockBuilder.mockLoggerAthorPublServ);
+
         }
 
         public async Task DisposeAsync()
@@ -49,18 +58,9 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
                     Salt="salt"
                 }
             };
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
 
-            accounts.ForEach(async x => await accRep.AddAsync(x));
-            await accRep.SaveAsync();
-
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-
-            var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
-
-            var AthorPublicProfileServ = new AthorPublicProfileService(accountServ, mockRedisLockServ.Object, StandartMockBuilder.mockLoggerAthorPublServ);
+            accounts.ForEach(async x => await accountRepository.AddAsync(x));
+            await accountRepository.SaveAsync();            
 
             var req = new AthorIdRequest()
             {
@@ -75,7 +75,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            var actualReply = await AthorPublicProfileServ.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
+            var actualReply = await publicProfileService.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
 
             //Assert
             accounts.Should().NotBeEmpty();
@@ -86,15 +86,6 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
         public async Task GetProfile_WithNotExistAccount_ReturnDefaultProfile()
         {
             //Arrange
-            using var scope = webHost.Services.CreateScope();
-            var appDBContext = scope.ServiceProvider.GetRequiredService<AppDBContext>();
-            var accRep = new AccountRepository(appDBContext);
-            var accountServ = new AccountService(accRep, StandartMockBuilder.mockLoggerAccServ);
-
-            var mockRedisLockServ = StandartMockBuilder.CreateRedisLockServiceMock();
-
-            var AthorPublicProfileServ = new AthorPublicProfileService(accountServ, mockRedisLockServ.Object, StandartMockBuilder.mockLoggerAthorPublServ);
-
             var req = new AthorIdRequest()
             {
                 AccountId = Guid.NewGuid().ToString(),
@@ -108,7 +99,7 @@ namespace HCL.IdentityServer.API.Test.IntegrationTest.Services
             };
 
             //Act
-            var actualReply = await AthorPublicProfileServ.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
+            var actualReply = await publicProfileService.GetProfile(req, StandartMockBuilder.CreateServerCallContextMock().Object);
 
             //Assert
             actualReply.Status.Should().Be(expectedReply.Status);
