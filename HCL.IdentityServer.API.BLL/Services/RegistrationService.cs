@@ -28,7 +28,7 @@ namespace HCL.IdentityServer.API.BLL.Services
             var accountOnRegistration = (await _accountService.GetAccount(x => x.Login == DTO.Login)).Data;
             if (accountOnRegistration != null)
             {
-                log.BuildMessage("no comments");
+                log.BuildMessage("Account with that login alredy exist");
                 _logger.LogInformation(JsonSerializer.Serialize(log.Build()));
 
                 return new StandartResponse<AuthDTO>()

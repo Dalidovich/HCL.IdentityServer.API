@@ -127,7 +127,7 @@ namespace HCL.IdentityServer.API.Test.Services
         }
 
         [Fact]
-        public async Task DeleteAccount_WithNotExistAccount_ReturnBooleantTrue()
+        public async Task DeleteAccount_WithNotExistAccount_ReturnBooleantFalse()
         {
             //Arrange
             List<Account> accounts = new List<Account>();

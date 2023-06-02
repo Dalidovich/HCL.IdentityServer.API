@@ -121,10 +121,10 @@ namespace HCL.IdentityServer.API.Test.Services
 
             var result = async () =>
             {
-                await regServ.Registration(accountForRegistration);
+                await regServ.Authenticate(accountForRegistration);
             };
 
-            result.Should().ThrowAsync<KeyNotFoundException>();
+            await result.Should().ThrowAsync<KeyNotFoundException>();
         }
     }
 }
