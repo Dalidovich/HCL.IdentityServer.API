@@ -1,135 +1,78 @@
 ﻿using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.Domain.DTO;
+using HCL.IdentityServer.API.Domain.DTO.Builders;
 using HCL.IdentityServer.API.Domain.Entities;
 using HCL.IdentityServer.API.Domain.Enums;
 using HCL.IdentityServer.API.Domain.InnerResponse;
-using HCL.IdentityServer.API.Domain.JWT;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Security.Cryptography;
-using System.Text;
+using System.Text.Json;
 
 namespace HCL.IdentityServer.API.BLL.Services
 {
     public class RegistrationService : IRegistrationService
     {
-        protected readonly ILogger<RegistrationService> _logger;
-        private readonly JWTSettings _options;
         private readonly IAccountService _accountService;
+        private readonly ITokenService _tokenService;
+        private readonly ILogger<RegistrationService> _logger;
 
-        public RegistrationService(ILogger<RegistrationService> logger, IOptions<JWTSettings> options, IAccountService accountService)
+        public RegistrationService(IAccountService accountService, ITokenService tokenService
+            , ILogger<RegistrationService> logger)
         {
-            _logger = logger;
-            _options = options.Value;
             _accountService = accountService;
+            _tokenService = tokenService;
+            _logger = logger;
         }
-        public async Task<BaseResponse<(string, Guid)>> Registration(AccountDTO DTO)
+        public async Task<BaseResponse<AuthDTO>> Registration(AccountDTO DTO)
         {
-            try
+            var log = new LogDTOBuidlder("Registration(DTO)");
+            var accountOnRegistration = (await _accountService.GetAccount(x => x.Login == DTO.Login)).Data;
+            if (accountOnRegistration != null)
             {
-                var accountOnRegistration = (await _accountService.GetAccount(x => x.Login == DTO.Login)).Data;
-                if (accountOnRegistration != null)
-                {
-                    return new StandartResponse<(string, Guid)>()
-                    {
-                        Message = "Account with that login alredy exist"
-                    };
-                }
-                CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
-                var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
-                newAccount = (await _accountService.CreateAccount(newAccount)).Data;
-                return new StandartResponse<(string, Guid)>()
-                {
-                    Data = (await Authenticate(DTO)).Data,
-                    StatusCode = StatusCode.AccountCreate
-                };
+                log.BuildMessage("Account with that login alredy exist");
+                _logger.LogInformation(JsonSerializer.Serialize(log.Build()));
 
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[Registration] : {ex.Message}");
-                return new StandartResponse<(string, Guid)>()
+                return new StandartResponse<AuthDTO>()
                 {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
+                    Message = "Account with that login alredy exist",
+                    StatusCode = StatusCode.AccountExist
                 };
             }
-        }
 
-        public async Task<BaseResponse<(string, Guid)>> Authenticate(AccountDTO DTO)
-        {
-            try
-            {
-                var account = await _accountService.GetAccount(x => x.Login == DTO.Login);
-                if (account.Data == null ||
-                    !VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
-                {
-                    return new StandartResponse<(string, Guid)>()
-                    {
-                        Message = "account not found"
-                    };
-                }
-                string token = GetToken(account.Data);
-                return new StandartResponse<(string, Guid)>()
-                {
-                    Data = (token, (Guid)account.Data.Id),
-                    StatusCode = StatusCode.AccountAuthenticate
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"[Authenticate] : {ex.Message}");
-                return new StandartResponse<(string, Guid)>()
-                {
-                    Message = ex.Message,
-                    StatusCode = StatusCode.InternalServerError,
-                };
-            }
-        }
+            _tokenService.CreatePasswordHash(DTO.Password, out byte[] passwordHash, out byte[] passwordSalt);
+            var newAccount = new Account(DTO, Convert.ToBase64String(passwordSalt), Convert.ToBase64String(passwordHash));
+            newAccount = (await _accountService.CreateAccount(newAccount)).Data;
 
-        public string GetToken(Account account)
-        {
-            List<Claim> claims = new List<Claim>
+            log.BuildMessage("registration account");
+            _logger.LogInformation(JsonSerializer.Serialize(log.Build()));
+
+            return new StandartResponse<AuthDTO>()
             {
-                new Claim(ClaimTypes.Name,account.Login),
-                new Claim(ClaimTypes.Role, account.Role.ToString()),
-                new Claim(CustomClaimType.AccountId, account.Id.ToString())
+                Data = (await Authenticate(DTO)).Data,
+                StatusCode = StatusCode.AccountCreate
             };
-
-            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
-
-            var jwt = new JwtSecurityToken(
-                    issuer: _options.Issuer,
-                    audience: _options.Audience,
-                    claims: claims,
-                    expires: DateTime.Now.Add(TimeSpan.FromMinutes(StandartConst.StartJWTTokenLifeTime)),
-                    notBefore: DateTime.Now,
-                    signingCredentials: new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256)
-                );
-
-            return new JwtSecurityTokenHandler().WriteToken(jwt);
         }
 
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
+        public async Task<BaseResponse<AuthDTO>> Authenticate(AccountDTO DTO)
         {
-            using (var hmac = new HMACSHA512())
+            var account = await _accountService.GetAccount(x => x.Login == DTO.Login);
+            if (account.Data == null ||
+                !_tokenService.VerifyPasswordHash(DTO.Password, Convert.FromBase64String(account.Data.Password), Convert.FromBase64String(account.Data.Salt)))
             {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
+                throw new KeyNotFoundException("[Authenticate]");
             }
-        }
+            string token = _tokenService.GetToken(account.Data);
 
-        private bool VerifyPasswordHash(string Password, byte[] passwordHash, byte[] passwordSalt)
-        {
-            using (var hmac = new HMACSHA512(passwordSalt))
+            var log = new LogDTOBuidlder("Authenticate(DTO)")
+                .BuildMessage("authenticate account")
+                .BuildSuccessState(true)
+                .Build();
+            _logger.LogInformation(JsonSerializer.Serialize(log));
+
+            return new StandartResponse<AuthDTO>()
             {
-                var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(Password));
-
-                return computedHash.SequenceEqual(passwordHash);
-            }
+                Data = new AuthDTO(token, (Guid)account.Data.Id),
+                StatusCode = StatusCode.AccountAuthenticate
+            };
         }
     }
 }

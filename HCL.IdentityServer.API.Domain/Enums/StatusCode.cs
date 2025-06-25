@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HCL.IdentityServer.API.Domain.Enums
+﻿namespace HCL.IdentityServer.API.Domain.Enums
 {
     public enum StatusCode
     {
@@ -15,6 +9,7 @@ namespace HCL.IdentityServer.API.Domain.Enums
         AccountDelete = 3,
         AccountRead = 4,
         AccountAuthenticate = 5,
+        AccountExist = 6,
 
         OK = 200,
         OKNoContent = 204,

@@ -10,12 +10,13 @@ namespace HCL.IdentityServer.API
         {
             var builder = WebApplication.CreateBuilder(args);
 
-
             builder.Services.AddControllers();
             builder.Services.AddSingleton(builder.Configuration);
             builder.AddRepositores();
             builder.AddServices();
             builder.AddJWT();
+            builder.AddRedisPropperty();
+            builder.AddElasticserchProperty();
 
             builder.Services.AddDbContext<AppDBContext>(opt => opt.UseNpgsql(
                 builder.Configuration.GetConnectionString(StandartConst.NameConnection)));
@@ -23,19 +24,19 @@ namespace HCL.IdentityServer.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.AddHostedService();
+
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
+            if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
             {
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            app.AddMiddleware();
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

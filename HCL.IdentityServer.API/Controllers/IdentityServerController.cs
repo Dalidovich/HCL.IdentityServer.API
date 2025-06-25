@@ -1,7 +1,10 @@
+using Google.Protobuf.WellKnownTypes;
 using HCL.IdentityServer.API.BLL.Interfaces;
 using HCL.IdentityServer.API.Domain.DTO;
+using HCL.IdentityServer.API.Domain.DTO.Builders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace HCL.IdentityServer.API.Controllers
 {
@@ -9,65 +12,91 @@ namespace HCL.IdentityServer.API.Controllers
     [Route("api/[controller]")]
     public class IdentityServerController : ControllerBase
     {
-        private readonly ILogger<IdentityServerController> _logger;
         private readonly IRegistrationService _registrationService;
         private readonly IAccountService _accountService;
+        private readonly ILogger<IdentityServerController> _logger;
 
-        public IdentityServerController(ILogger<IdentityServerController> logger, IRegistrationService registrationService, IAccountService accountService)
+        public IdentityServerController(IRegistrationService registrationService, IAccountService accountService
+            , ILogger<IdentityServerController> logger)
         {
-            _logger = logger;
             _registrationService = registrationService;
             _accountService = accountService;
+            _logger = logger;
         }
 
-        [HttpPost("Authenticate/")]
-        public async Task<IResult> Authenticate(AccountDTO accountDTO)
+        [HttpPost("v1/authenticate/")]
+        public async Task<IActionResult> Authenticate([FromQuery] AccountDTO accountDTO)
         {
             if (accountDTO == null)
             {
-                return Results.NotFound();
+
+                return BadRequest();
             }
             var resourse = await _registrationService.Authenticate(accountDTO);
-            if (resourse.Data.Item1 == null)
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountAuthenticate)
             {
-                return Results.NoContent();
+                var log = new LogDTOBuidlder("Authenticate(accountDTO)")
+                .BuildMessage($"authenticate account")
+                .BuildSuccessState(resourse.Data != null)
+                .BuildStatusCode(200)
+                .Build();
+                _logger.LogInformation(JsonSerializer.Serialize(log));
+
+                return Ok(resourse.Data);
             }
-            else
-            {
-                return Results.Json(new { token = resourse.Data.Item1, id = resourse.Data.Item2 });
-            }
+
+            return Unauthorized();
         }
 
-        [HttpPost("Registration/")]
-        public async Task<IResult> Registration(AccountDTO accountDTO)
+        [HttpPost("v1/registration/")]
+        public async Task<IActionResult> Registration([FromQuery] AccountDTO accountDTO)
         {
-            if (accountDTO == null)
-            {
-                return Results.NotFound();
-            }
             var resourse = await _registrationService.Registration(accountDTO);
-            if (resourse.Data.Item1 == null)
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountCreate)
             {
-                return Results.NoContent();
+                var log = new LogDTOBuidlder("Registration(accountDTO)")
+                .BuildMessage($"registration account")
+                .BuildSuccessState(resourse.Data != null)
+                .BuildStatusCode(201)
+                .Build();
+                _logger.LogInformation(JsonSerializer.Serialize(log));
+
+                return Created("", resourse.Data);
             }
-            else
+            if (resourse.StatusCode == Domain.Enums.StatusCode.AccountExist)
             {
-                return Results.Json(new { token = resourse.Data.Item1, id = resourse.Data.Item2 });
+                var log = new LogDTOBuidlder("Registration(accountDTO)")
+                .BuildMessage($"try registration account with exist data")
+                .BuildStatusCode(409)
+                .Build();
+                _logger.LogInformation(JsonSerializer.Serialize(log));
+
+                return Conflict("Account Exist");
             }
+
+            return BadRequest();
         }
 
         [Authorize(Roles = "admin")]
-        [HttpDelete("Delete/{id}")]
-        public async Task<IResult> Delete(Guid id)
+        [HttpDelete("v1/account/")]
+        public async Task<IActionResult> Delete([FromQuery] Guid id)
         {
             var resourse = await _accountService.DeleteAccount(x => x.Id == id);
             if (resourse.Data)
             {
-                return Results.Ok(resourse.Data);
+                var log = new LogDTOBuidlder("Delete(id)")
+                .BuildMessage("admin account delete account")
+                .BuildSuccessState(resourse.Data)
+                .BuildStatusCode(204)
+                .Build();
+                _logger.LogInformation(JsonSerializer.Serialize(log));
+
+                return NoContent();
             }
             else
             {
-                return Results.StatusCode(500);
+
+                return BadRequest();
             }
         }
     }

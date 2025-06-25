@@ -6,11 +6,10 @@ namespace HCL.IdentityServer.API.BLL.Interfaces
 {
     public interface IAccountService
     {
-        public Task<BaseResponse<IEnumerable<Account>>> GetAllAccounts();
         public Task<BaseResponse<Account>> GetAccount(Expression<Func<Account, bool>> expression);
+        public Task<BaseResponse<IEnumerable<Account>>> GetAccounts(Expression<Func<Account, bool>> expression);
         public Task<BaseResponse<Account>> CreateAccount(Account account);
         public Task<BaseResponse<Account>> UpdateAccount(Account account);
         public Task<BaseResponse<bool>> DeleteAccount(Expression<Func<Account, bool>> expression);
-
     }
 }

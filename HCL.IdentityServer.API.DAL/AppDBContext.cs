@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace HCL.IdentityServer.API.DAL
 {
-    public partial class AppDBContext : DbContext
+    public class AppDBContext : DbContext
     {
         public DbSet<Account> Accounts { get; set; }
 
@@ -32,10 +32,6 @@ namespace HCL.IdentityServer.API.DAL
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
-
-            OnModelCreatingPartial(modelBuilder);
         }
-
-        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
     }
 }
