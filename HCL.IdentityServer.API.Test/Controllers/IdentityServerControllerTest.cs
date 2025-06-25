@@ -131,7 +131,7 @@ namespace HCL.IdentityServer.API.Test.Controllers
                 await controller.Authenticate(accountForRegistration);
             };
 
-            result.Should().ThrowAsync<KeyNotFoundException>();
+            await result.Should().ThrowAsync<KeyNotFoundException>();
         }
 
         [Fact]
